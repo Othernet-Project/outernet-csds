@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+
+from zoro import *
+
+SDK_PATH = '/Program\\ Files\\ (x86)/Google/google_appengine'
+ERROR_STATUS = 1
+
+class Targets(Make):
+    """
+    This zorofile is used to configure, develop, and deploy this project.
+    Please see the list of targets to get a feel for what it can do for you.
+    The `check` target should be run first to check your development
+    environment and ensure you have everything you need to get started.
+    """
+
+    def _check_cmd(self, cmd, msg):
+        """ Internal method to simplify command checks """
+        if where(cmd) is None: 
+            err(msg, ERROR_STATUS)
+
+    def clean(self):
+        """ remove build directory """
+        rmtree('build', ignore_errors=True),
+
+    def check(self):
+        """ Check the dev environment and offer advice on how to proceed """
+
+        if not venv():
+            err('Please craete and/or activate a vritualenv for this project. '
+                'See virtualenvwrapper.readthedocs.org', ERROR_STATUS)
+
+        self._check_cmd('npm', 'You need NodeJS and NPM. See nodejs.org')
+        self._check_cmd('gem', 'You need Ruby and Ruby Gems. See '
+                        'www.ruby-lang.org')
+
+        if not os.path.exists(os.path.normpath(SDK_PATH.replace('\\', ''))):
+            err('Google AppEngine SDK is not installed. See '
+                'https://developers.google.com/appengine/downloads', 1)
+
+        if where('compass') is None:
+            run('gem install compass', False)
+
+        print('Installing NodeJS dependencies')
+        run('npm install -q', True)
+        print('Installing local Python dependencies')
+        rmtree('vendor', ignore_errors=True)
+        run('pip install -t vendor -qr requirements.txt', True)
+        print('Installing development Python dependencies')
+        run('pip install -qr dev_requirements.txt', True)
+        run('easy_install PIL', True)
+        print(separator)
+        print('Everything seems to be in order.')
+        print(separator)
+
+    def dev(self):
+        """ start live compilation of all sources and the GAE server """
+        wait_for_interrupt(
+            run(python('%s/dev_appserver --port 8080 '
+                        '--host 0.0.0.0 --skip_sdk_update_check yes '
+                        '--log_level=debug .' % SDK_PATH)),
+        )
+
+    def test(self):
+        """ Start unit test runner """
+        wait_for_interrupt(
+            watch(python('tools/run_test %s tests' % SDK_PATH), '.',
+                  ['*.py'])
+        )
+
+    def build(self):
+        """ prepares the project for deployment """
+        self.clean()
+        copytree('app', 'build/app')
+        copytree('templates', 'build/templates')
+        copytree('vendor', 'build/vendor')
+        copyfile('app.yaml', 'build/app.yaml')
+        copyfile('index.yaml', 'build/index.yaml')
+        run('node tools/r.js -o tools/build.js', True)
+        cleanup('build', '*.pyc')
+        cleanup('build', '*.swp')
+        cleanup('build/vendor', '*.egg-info')
+        cleanup('build/vendor', 'docs')
+        cleanup('build/vendor', 'VERSION')
+        cleanup('build/vendor', 'testsuite')
+        for f in CSS_FILES:
+            f = 'build/static/css/%s.css' % f
+            run(node_local('cleancss -c -b -o %(f)s %(f)s' % {'f': f}),
+                wait=True)
+        run(python('tools/cachebust build/templates'), True)
+        run(python('tools/static_pages build/templates build/static'), True)
+
+    def deploy(self):
+        """ build and deploy the pap on GAE """
+        self.build()
+        if not os.path.exists('build/ef/secret.py'):
+            err('Secret key file missing! Deployment is aborted.',
+                ERROR_STATUS)
+        run('%s/appcfg.py --passin update build' % SDK_PATH, True)
+
+
+if __name__ == '__main__':
+    Targets()()

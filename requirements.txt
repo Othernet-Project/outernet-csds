@@ -1,0 +1,4 @@
+Flask==0.1.0
+FlaskWarts==0.1a7
+ndb-utils==0.1a1
+
