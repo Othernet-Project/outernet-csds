@@ -13,6 +13,7 @@ import re
 
 import Image
 
+from .db import Request as RequestModel, RequestConstants
 from .exceptions import *
 
 __all__ = ('Request',)
@@ -27,7 +28,7 @@ BASE64_RE = re.compile(r'^([A-Za-z0-9+/]{4})*'  # normal base-64 blocks
                        r')$')
 
 
-class Request(object):
+class Request(RequestConstants):
     """ Content requests
 
     The ``Request`` class represents content requests and provides methods for
@@ -42,57 +43,6 @@ class Request(object):
     BinaryDecodeError = BinaryDecodeError
     ImageDecodeError = ImageDecodeError
     ImageFormatError = ImageFormatError
-
-    # Request worlds
-    ONLINE = 1
-    OFFLINE = 0
-    WORLDS = [ONLINE, OFFLINE]
-
-    # Request types
-    TRANSCRIBED = 1
-    NONTRANSCRIBED = 0
-    TYPES = [TRANSCRIBED, NONTRANSCRIBED]
-
-    # Request formats
-    TEXT = 'text/plain'
-    PNG = 'image/png'
-    JPG = 'image/jpg'
-    GIF = 'image/gif'
-    IMAGE = [PNG, JPG, GIF]
-    FORMATS = [TEXT, PNG, JPG, GIF]
-
-    # Mapping between formats and types
-    CONTENT_TYPES = {
-        TEXT: TRANSCRIBED,
-        PNG: NONTRANSCRIBED,
-        JPG: NONTRANSCRIBED,
-        GIF: NONTRANSCRIBED,
-    }
-
-    # PIL-related constants
-    PIL_PNG = 'PNG'
-    PIL_JPG = 'JPEG'
-    PIL_GIF = 'GIF'
-    PIL_FORMATS = [PIL_PNG, PIL_JPG, PIL_GIF]
-
-    # Request topics
-    TOPICS = [
-        'agriculture',
-        'arts',
-        'business',
-        'computers',
-        'economy',
-        'education',
-        'health',
-        'home',
-        'kids',
-        'nature',
-        'news',
-        'society',
-        'sports',
-        'sports',
-        'technology',
-    ]
 
     def __init__(self, adaptor, content, timestamp, world, content_format,
                  language=None, content_language=None, topic=None,
@@ -187,6 +137,29 @@ class Request(object):
         self.check_content_format()
         self.check_content_data()
         return self
+
+    def persist(self):
+        if not self.processed_content:
+            raise RequestError('Cannot persist unprocessed request')
+        r = RequestModel(
+            adaptor_name=self.adaptor_name,
+            adaptor_source=self.adaptor_source,
+            adaptor_trusted=self.adaptor_trusted,
+            content_type=self.content_type,
+            content_format=self.content_format,
+            content_language=self.content_language,
+            world=self.world,
+            language=self.language,
+            topic=self.topic,
+            posted=self.posted,
+            processed=self.processed,
+        )
+        if self.content_type == self.TRANSCRIBED:
+            r.text_content = self.processed_content
+        else:
+            r.binary_content = self.processed_content
+        r.put()
+        return r
 
     def decode_binary(self):
         """ Decodes binary data """

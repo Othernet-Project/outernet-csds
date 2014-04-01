@@ -1,6 +1,6 @@
 from mock import patch
 
-from rh.db import RemoteAdaptor, Request
+from rh.db import *
 
 from tests.dbunit import DatastoreTestCase
 

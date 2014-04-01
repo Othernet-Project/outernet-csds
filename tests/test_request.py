@@ -6,6 +6,9 @@ import base64
 from mock import Mock, patch
 
 from rh.requests import Request
+from rh.db import Request as RequestModel
+
+from tests.dbunit import DatastoreTestCase
 
 img_path = lambda p: os.path.join(os.path.dirname(__file__), p)
 
@@ -20,7 +23,28 @@ TEST_TIFF_B64 = base64.b64encode(TEST_TIFF_BIN)
 
 TEST_TIMESTAMP = datetime.datetime(2014, 4, 1)
 
-class RequestObjectTestCase(unittest.TestCase):
+
+class RequestTestMixin(object):
+    """ Mixin with factory methods """
+
+    def adaptor(self, name='foo', source='bar', trusted=False):
+        """ Build mock adaptor object """
+        a = Mock()
+        a.name = name
+        a.source = source
+        a.trusted = trusted
+        return a
+
+    def request(self, adaptor=None, content='test', timestamp=None,
+                world=Request.ONLINE, content_format=Request.TEXT, **kwargs):
+        """ Build test request object """
+        adaptor = adaptor or self.adaptor()
+        timestamp = timestamp or TEST_TIMESTAMP
+        return Request(adaptor, content, timestamp, world, content_format,
+                       **kwargs)
+
+
+class RequestObjectTestCase(RequestTestMixin, unittest.TestCase):
     """ Tests the ``Request`` API """
 
     def test_adaptor_arg(self):
@@ -123,22 +147,6 @@ class RequestObjectTestCase(unittest.TestCase):
         d.assert_called_once()
         e.assert_called_once()
 
-    def adaptor(self, name='foo', source='bar', trusted=False):
-        """ Build mock adaptor object """
-        a = Mock()
-        a.name = name
-        a.source = source
-        a.trusted = trusted
-        return a
-
-    def request(self, adaptor=None, content='test', timestamp=None,
-                world=Request.ONLINE, content_format=Request.TEXT, **kwargs):
-        """ Build test request object """
-        adaptor = adaptor or self.adaptor()
-        timestamp = timestamp or TEST_TIMESTAMP
-        return Request(adaptor, content, timestamp, world, content_format,
-                       **kwargs)
-
     def assertAdaptorInvalid(self, a, msg):
         """ Make assertion about adaptor validation """
         r = self.request(a)
@@ -166,3 +174,30 @@ class RequestObjectTestCase(unittest.TestCase):
         with self.assertRaises(Request.RequestDataError) as ctx:
             r.check_request_meta()
         self.assertEqual(ctx.exception.message, msg)
+
+
+class RequestPersistTestCase(RequestTestMixin, DatastoreTestCase):
+    """ Test for the Request object's persist() method """
+
+    def test_persist(self):
+        """ Can persist in the database using persist() method """
+        r = self.request()
+        r.check()
+        r.persist()
+
+        r1 = RequestModel.query().get()
+        for prop in ['adaptor_name', 'adaptor_source', 'adaptor_trusted',
+                     'content_type', 'content_format', 'content_language',
+                     'world', 'language', 'topic', 'posted']:
+            self.assertEqual(getattr(r, prop), getattr(r1, prop))
+
+    def test_persist_error(self):
+        """ Should throw exception if request is not processed """
+        r = self.request()
+
+        with self.assertRaises(Request.RequestError):
+            r.persist()
+
+
+
+
