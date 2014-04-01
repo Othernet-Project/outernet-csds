@@ -117,3 +117,5 @@ class Request(RequestConstants, ndb.Model):
     processed = ndb.DateTimeProperty(required=True)
     recorded = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
+    # Workflow
+    proofed = ndb.BooleanProperty(default=False)
