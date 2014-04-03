@@ -122,12 +122,12 @@ class RequestObjectTestCase(RequestTestMixin, unittest.TestCase):
 
     def test_check_wrong_image_format(self):
         r = self.request(content=TEST_IMAGE_B64, content_format=Request.JPG)
-        self.assertImageInvalid(r, 'Image format PNG does not match content '
+        self.assertImageInvalid(r, 'Image format png does not match content '
                                 'format image/jpg')
 
     def test_check_unsupported_format(self):
         r = self.request(content=TEST_TIFF_B64, content_format='image/png')
-        self.assertImageInvalid(r, 'Image format TIFF not supported')
+        self.assertImageInvalid(r, 'Image format -4 not supported')
 
     def test_check_world(self):
         r = self.request(world=2)

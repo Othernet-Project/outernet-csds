@@ -11,7 +11,7 @@ import StringIO
 import datetime
 import re
 
-import Image
+from google.appengine.api.images import Image, NotImageError
 
 from .db import Request as RequestModel, RequestConstants
 from .exceptions import *
@@ -104,20 +104,13 @@ class Request(RequestConstants):
             decoded = self.decode_binary()
             img = self.image_from_string(decoded)
             # Check if image is broken
-            try:
-                # It seems opening an invalid image raises IOError before we
-                # even get to this point. However, there might still be cases
-                # where IOError isn't raised, so we are including the snipped.
-                img.verify()
-            except Exception:
-                raise ImageFormatError('Image data is not valid')
-            # Check if image is in supported format
             fmt = img.format
             if fmt not in self.PIL_FORMATS:
                 raise ImageFormatError('Image format %s not supported' % fmt)
+            fmt = self.PIL_FORMAT_MAPPINGS[fmt]
             # Check if image format matches the declared content format
             dfmt = self.content_format.split('/')[1]
-            if fmt.lower() != dfmt:
+            if fmt != dfmt:
                 raise ImageFormatError('Image format %s does not match '
                                        'content format %s' % (
                                            fmt, self.content_format))
@@ -138,7 +131,8 @@ class Request(RequestConstants):
         self.check_content_data()
         return self
 
-    def persist(self):
+    def prepare(self):
+        """ Return an unsaved entity """
         if not self.processed_content:
             raise RequestError('Cannot persist unprocessed request')
         r = RequestModel(
@@ -158,6 +152,10 @@ class Request(RequestConstants):
             r.text_content = self.processed_content
         else:
             r.binary_content = self.processed_content
+        return r
+
+    def persist(self):
+        r = self.prepare()
         r.put()
         return r
 
@@ -172,12 +170,10 @@ class Request(RequestConstants):
     @staticmethod
     def image_from_string(s):
         """ Converts a string to PIL's Image object """
-        buff = StringIO.StringIO()
-        buff.write(s)
-        buff.seek(0)
         try:
-            img = Image.open(buff)
-        except IOError:
+            img = Image(image_data=s)
+            img.format  # Access the `format` attrib to trigger the exception
+        except NotImageError:
             raise ImageDecodeError('Cannot load image from string')
         return img
 
