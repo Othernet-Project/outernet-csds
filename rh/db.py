@@ -9,6 +9,7 @@ These models are used to persist data which is used by adaptors and the hub.
 from __future__ import unicode_literals, print_function
 
 from google.appengine.ext import ndb
+from google.appengine.api import images
 
 from .keys import generate_api_key
 
@@ -46,11 +47,16 @@ class RequestConstants(object):
         GIF: NONTRANSCRIBED,
     }
 
-    # PIL-related constants
-    PIL_PNG = 'PNG'
-    PIL_JPG = 'JPEG'
-    PIL_GIF = 'GIF'
+    # GAE-Images-API-related constants
+    PIL_PNG = images.PNG
+    PIL_JPG = images.JPEG
+    PIL_GIF = images.GIF
     PIL_FORMATS = [PIL_PNG, PIL_JPG, PIL_GIF]
+    PIL_FORMAT_MAPPINGS = {
+        PIL_PNG: 'png',
+        PIL_JPG: 'jpg',
+        PIL_GIF: 'gif',
+    }
 
     # Request topics
     TOPICS = [
@@ -102,7 +108,7 @@ class Request(RequestConstants, ndb.Model):
     content_format = ndb.StringProperty(required=True,
                                         choices=RequestConstants.FORMATS)
     binary_content = ndb.BlobProperty(indexed=False, compressed=True)
-    text_content = ndb.TextProperty(indexed=False)
+    text_content = ndb.TextProperty()
     content_language = ndb.StringProperty()
 
     # Metadata
@@ -118,4 +124,20 @@ class Request(RequestConstants, ndb.Model):
     recorded = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
     # Workflow
-    proofed = ndb.BooleanProperty(default=False)
+    broadcast = ndb.BooleanProperty(default=False)
+
+    @classmethod
+    def fetch_cds_requests(cls):
+        """ Fetches all requests for display in CDS
+
+        The result set only includes items that have not been broadcast yet.
+
+        The result set is sorted by post date (latest first) and may include a
+        maximum of 1000 items (GAE limit). Paging may be allowed in future
+        iterations.
+        """
+
+        return cls.query(
+            cls.broadcast == False
+        ).order(-cls.posted).fetch()
+
