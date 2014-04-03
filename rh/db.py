@@ -141,3 +141,26 @@ class Request(RequestConstants, ndb.Model):
             cls.broadcast == False
         ).order(-cls.posted).fetch()
 
+
+class HarvestHistory(ndb.Model):
+    """ Model to persist cron-based harvesting history """
+
+    timestamp = ndb.DateTimeProperty(auto_now=True)
+
+    @classmethod
+    def get_timestamp(cls, adaptor):
+        k = cls.get_key(adaptor)
+        h = k.get()
+        if not h:
+            return
+        return h.timestamp
+
+    @classmethod
+    def record(cls, adaptor):
+        h = cls(id=adaptor.name)
+        h.put()
+
+    @staticmethod
+    def get_key(adaptor):
+        return ndb.Key('HarvestHistory', adaptor.name)
+
