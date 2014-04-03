@@ -1,3 +1,4 @@
 *.py[oc]
 *.sw[op]
 /.ropeproject
+/vendor
