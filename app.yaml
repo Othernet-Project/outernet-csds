@@ -1,0 +1,46 @@
+application: outernet-csds
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /favicon.ico
+  static_files: static/img/favicon.ico
+  upload: static/img/favicon.ico
+  secure: always
+
+- url: /img/(.*)
+  static_files: static/img/\1
+  upload: static/img/(.*\.(gif|png|jpg))
+  secure: always
+
+- url: /css/(.*)
+  static_files: static/css/\1
+  upload: static/css/(.*\.(css|woff|eot|ttf|svg))
+  secure: always
+
+- url: /js/(.*)
+  static_files: static/js/\1
+  upload: static/js/(.*\.js)
+  secure: always
+
+- url: /rh/harvests/bihourly
+  script: app.main.app
+  secure: always
+  login: admin
+
+- url: /.*
+  script: app.main.app
+  secure: always
+  login: optional
+
+skip_files:
+- ^\.git.*$
+- ^node_modules.*$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*\.swp$
+- ^src\/.*$
+- ^build\/.*$
+- ^README.md$
+- ^volofile$

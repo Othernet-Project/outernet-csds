@@ -1,0 +1,4 @@
+cron:
+- description: Outernet Facebook adaptor quarter-daily harvest
+  url: /rh/harvests/facebook
+  schedule: every 6 hours
