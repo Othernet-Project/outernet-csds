@@ -90,7 +90,7 @@ class Targets(Make):
         run(python('tools/static_pages build/templates build/static'), True)
 
     def deploy(self):
-        """ build and deploy the pap on GAE """
+        """ build and deploy the app on GAE """
         self.build()
         if not os.path.exists('build/ef/secret.py'):
             err('Secret key file missing! Deployment is aborted.',
