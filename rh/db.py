@@ -142,6 +142,12 @@ class Request(RequestConstants, ndb.Model):
         ).order(-cls.posted).fetch()
 
 
+class Content(ndb.Model):
+    """ Model to persist content suggestions """
+
+    url = ndb.StringProperty(required=True)
+
+
 class HarvestHistory(ndb.Model):
     """ Model to persist cron-based harvesting history """
 
