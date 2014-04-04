@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Request #{{ req.key.id() }}{% endblock %}
+
+{% block content %}
+<p class="nav"><a href="{{ url_for('cds_webui_list') }}">All requests</a></p>
+
+<div class="request">
+<p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }}</p>
+<p>{{ req.text_content }}</p>
+</div>
+<h2>Content suggestions</h2>
+{% if contents %}
+<ul>
+{% for content in contents %}
+    <li class="content-suggestion"><a href="{{ content.url }}">{{ content.url }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p>There are no content suggestions.</p>
+{% endif %}
+
+<h2>Suggest content</h2>
+
+{{ form|safe }}
+{% endblock %}

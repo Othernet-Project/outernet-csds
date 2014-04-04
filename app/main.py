@@ -16,9 +16,14 @@ sys.path.insert(0, VENDOR_DIR)
 
 from flask import Flask
 from utils.routes import register_module
+from utils.middlewares import csrf
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.config.from_object('app.conf.%s' % ENV)
+csrf(app)
+
+# Web interface handlers
+register_module(app, 'cds.webui')
 
 # Cron job handlers
 register_module(app, 'ra.outernet_facebook')

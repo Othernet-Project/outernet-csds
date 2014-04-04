@@ -1,0 +1,9 @@
+{% from 'utils/macros.html' import form_tag, text_field %}
+
+{{ form_tag(classes='content-form') }}
+    {{ csrf_tag }}
+    {{ text_field('suggestions', 'url', placeholder='URL of the page', label='URL', validates='url') }}
+    <p class="buttons">
+    <button type="submit">Suggest</button>
+    </p>
+</form>

@@ -1,0 +1,101 @@
+@import "compass/reset";
+@import "compass/utilities/text/replacement";
+
+body, html {
+  font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  line-height: 150%;
+  background: #eee;
+  color: #555;
+}
+
+body {
+  padding: 1em;
+}
+
+h1 {
+  width: image-width('logo.png');
+  height: image-height('logo.png');
+  margin-bottom: 1em;
+
+  a {
+    display: inline-block;
+    @include replace-text-with-dimensions('logo.png');
+  }
+}
+
+h2 {
+  margin: 1em 0;
+  font-size: 150%;
+  line-height: 110%;
+  color: #777;
+}
+
+li {
+  margin: 0.5em 0;
+}
+
+.nav {
+  background: #e0e0e0;
+  margin: 1em 0;
+  font-size: 80%;
+
+  a {
+    display: inline-block;
+    padding: 0.4em 1em;
+    background: #555;
+    color: #eee;
+    text-decoration: none;
+  }
+}
+
+.request {
+  border: 1px solid #ddd;
+  padding: 0.5em 1em;
+  background: #fff;
+  
+  .request-timestamp {
+    display: block;
+    font-size: 80%;
+  }
+}
+
+label {
+  font-weight: bold;
+
+  .required {
+    color: #a33;
+  }
+}
+
+input {
+  padding: 0.4em;
+  border: 1px solid #ddd;
+  background: #fff;
+  width: 300px;
+  font-size: 100%;
+}
+
+.field-error {
+  border-color: #a33;
+}
+
+.buttons {
+  border-top: 1px solid #ddd;
+  padding-top: 0.5em;
+  margin-top: 0.5em;
+}
+
+.error-message {
+  color: #a33;
+}
+
+button {
+  font-weight: bold;
+  border: 1px solid transparent;
+  background: #298bed;
+  color: #fff;
+  font-size: 100%;
+  padding: 0.6em 1em;
+  cursor: pointer;
+}

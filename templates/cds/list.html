@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Content requests{% endblock %}
+
+{% block content %}
+{% if requests %}
+<p>Following requests have been made by Outernet users:</p>
+<ul>
+    {% for req in requests %}
+    <li class="request">
+        <span class="request-timestamp">
+            <a href="{{ url_for('cds_webui_request', request_id=req.key.id()) }}">
+                {{ req.posted.strftime('%y-%m-%d') }} via {{ req.adaptor_source }}</a>
+        </span>
+        {{ req.text_content }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>There are no open requests at this time</p>
+{% endif %}
+{% endblock %}
