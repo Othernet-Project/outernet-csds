@@ -3,3 +3,6 @@
 /.ropeproject
 /vendor
 /static/css
+/conf.txt
+/build
+/node_modules
