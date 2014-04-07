@@ -2,3 +2,4 @@
 *.sw[op]
 /.ropeproject
 /vendor
+/static/css
