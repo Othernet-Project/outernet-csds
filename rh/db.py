@@ -146,6 +146,7 @@ class Content(ndb.Model):
     """ Model to persist content suggestions """
 
     url = ndb.StringProperty(required=True)
+    submitted = ndb.DateTimeProperty(auto_now_add=True)
 
 
 class HarvestHistory(ndb.Model):
