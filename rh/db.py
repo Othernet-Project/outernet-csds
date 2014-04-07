@@ -124,6 +124,7 @@ class Request(RequestConstants, ndb.Model):
     recorded = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
     # Workflow
+    has_suggestions = ndb.BooleanProperty(default=False)
     broadcast = ndb.BooleanProperty(default=False)
 
     @classmethod
