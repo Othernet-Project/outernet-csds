@@ -53,7 +53,7 @@ class WebUIRequest(FormRoute):
         # chance of a duplicate increases).
         try:
             urllib2.urlopen(url, timeout=10)
-        except Exception:
+        except urllib2.HTTPError:
             self.form.errors['url'] = ('This URL could not be opened.')
             return self.form_invalid()
 
