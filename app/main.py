@@ -18,8 +18,11 @@ from flask import Flask
 from utils.routes import register_module
 from utils.middlewares import csrf
 
+# App instance
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.config.from_object('app.conf.%s' % ENV)
+
+# Middlewares and request-response processors
 csrf(app)
 
 # Web interface handlers
@@ -28,3 +31,7 @@ register_module(app, 'css.webui')
 
 # Cron job handlers
 register_module(app, 'ra.outernet_facebook')
+
+# Misc handlers
+register_module(app, 'app.pages')
+

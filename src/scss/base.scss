@@ -22,6 +22,16 @@ h1 {
     display: inline-block;
     @include replace-text-with-dimensions('logo.png');
   }
+
+  &.large {
+    width: image-width('logo_big.png');
+    height: image-height('logo_big.png');
+    margin-top: 100px;
+
+    a {
+      @include replace-text-with-dimensions('logo_big.png');
+    }
+  }
 }
 
 h2 {
@@ -33,6 +43,10 @@ h2 {
 
 li {
   margin: 0.5em 0;
+}
+
+p {
+  margin-bottom: 1em;
 }
 
 .nav {
@@ -115,4 +129,13 @@ form.inline {
   font-size: 80%;
   display: block;
   font-weight: bold;
+}
+
+.read {
+  max-width: 600px;
+
+  .intro {
+    font-size: 120%;
+    line-height: 130%;
+  }
 }
