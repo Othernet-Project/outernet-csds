@@ -1,6 +1,6 @@
 import datetime
 
-from mock import patch
+from mock import patch, Mock
 from google.appengine.ext import ndb
 
 from rh.db import *
@@ -82,4 +82,48 @@ class ContentTestCase(DatastoreTestCase):
     def test_url_quoting(self):
         c = Content(url='http://test.com/')
         self.assertEqual(c.quoted_url, 'http%3A%2F%2Ftest.com%2F')
+
+
+class HarvestHistoryTestCase(DatastoreTestCase):
+    """ Tests related to harvest history data """
+
+    def adaptor(self, name='foo'):
+        """ Factory for mock adaptors """
+        adp = Mock()
+        adp.name = name
+        return adp
+
+    @patch('google.appengine.ext.ndb.model.DateTimeProperty._now')
+    def test_record_timestamp(self, now):
+        """ Should update timestamp on put """
+        now.return_value = datetime.datetime(2014, 4, 1)
+        a = self.adaptor()
+        h = HarvestHistory.record(a)
+        self.assertEqual(h.timestamp, now.return_value)
+
+    @patch('google.appengine.ext.ndb.model.DateTimeProperty._now')
+    def test_adaptor_name(self, now):
+        """ Should use adaptor name as id """
+        now.return_value = datetime.datetime(2014, 4, 1)
+        a = self.adaptor()
+        h = HarvestHistory.record(a)
+        self.assertEqual(h.key, ndb.Key('HarvestHistory', a.name))
+
+
+    @patch('google.appengine.ext.ndb.model.DateTimeProperty._now')
+    def test_get_timestamp(self, now):
+        """ Should return a timestamp for a given adaptor """
+        now.return_value = datetime.datetime(2014, 4, 1)
+        a = self.adaptor('bar')
+        h = HarvestHistory.record(a)
+        t = HarvestHistory.get_timestamp(a)
+        self.assertEqual(h.timestamp, t)
+
+    @patch('google.appengine.ext.ndb.model.DateTimeProperty._now')
+    def test_get_timestamp_for_nonexistent(self, now):
+        """ Should return UTC unix epoch for nonexistent adaptor """
+        now.return_value = datetime.datetime(2014, 4, 1)
+        t = HarvestHistory.get_timestamp(self.adaptor('baz'))
+        self.assertEqual(t, datetime.datetime.utcfromtimestamp(0))
+
 

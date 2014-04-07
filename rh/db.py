@@ -18,7 +18,8 @@ from .keys import generate_api_key
 
 ADAPTOR_KEY_PREFIX = 'ra'
 
-__all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content')
+__all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content',
+           'HarvestHistory')
 
 
 class RequestConstants(object):
