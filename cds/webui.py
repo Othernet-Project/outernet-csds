@@ -51,7 +51,8 @@ class WebUIRequest(FormRoute):
     def get_context(self):
         ctx = super(WebUIRequest, self).get_context()
         ctx['req'] = self.req
-        contents = Content.query(ancestor=self.req.key).fetch()
+        contents = Content.query(ancestor=self.req.key).order(
+            -Content.submitted).fetch()
         ctx['contents'] = contents
         ctx['count'] = len(contents)
         return ctx
