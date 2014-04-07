@@ -55,6 +55,7 @@ class Targets(Make):
     def dev(self):
         """ start live compilation of all sources and the GAE server """
         wait_for_interrupt(
+            run('compass watch -c tools/compass.rb'),
             run(python('%s/dev_appserver --port 8080 '
                         '--host 0.0.0.0 --skip_sdk_update_check yes '
                         '--log_level=debug .' % SDK_PATH)),
