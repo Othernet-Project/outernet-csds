@@ -16,6 +16,14 @@ indexes:
   - name: submitted
     direction: desc
 
+- kind: Content
+  ancestor: yes
+  properties:
+  - name: votes
+    direction: desc
+  - name: submitted
+    direction: desc
+
 - kind: Request
   properties:
   - name: broadcast

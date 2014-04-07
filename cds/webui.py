@@ -63,6 +63,10 @@ class WebUIRequest(FormRoute):
                 'suggested.')
             return self.form_invalid()
         self.req.has_suggestions = True
+        # FIXME: Having a request as parent may sound like a good idea, but
+        # it's probably bad for the voting system. We should either move votes
+        # into a separate entity group and not even cache it in the
+        # request-contents group, or make contents a separate group.
         content = Content(url=url, parent=self.req.key, id=url)
         ndb.put_multi([self.req, content])
         return super(WebUIRequest, self).form_valid()
@@ -71,7 +75,7 @@ class WebUIRequest(FormRoute):
         ctx = super(WebUIRequest, self).get_context()
         ctx['req'] = self.req
         contents = Content.query(ancestor=self.req.key).order(
-            -Content.submitted).fetch()
+            -Content.votes, -Content.submitted).fetch()
         ctx['contents'] = contents
         ctx['count'] = len(contents)
         return ctx
