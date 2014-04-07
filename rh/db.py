@@ -176,6 +176,7 @@ class HarvestHistory(ndb.Model):
     def record(cls, adaptor):
         h = cls(id=adaptor.name)
         h.put()
+        return h
 
     @staticmethod
     def get_key(adaptor):
