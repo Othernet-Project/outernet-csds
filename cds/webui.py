@@ -44,8 +44,15 @@ class WebUIRequest(FormRoute):
 
     def form_valid(self):
         url = self.form.valid_data['url']
-        content = Content(url=url, parent=self.req.key)
-        content.put()
+
+        key = ndb.Key('Request', self.req.key.id(), 'Content', url)
+        if key.get():
+            self.form.errors['url'] = ('This page has already been '
+                'suggested.')
+            return self.form_invalid()
+        self.req.has_suggestions = True
+        content = Content(url=url, parent=self.req.key, id=url)
+        ndb.put_multi([self.req, content])
         return super(WebUIRequest, self).form_valid()
 
     def get_context(self):
