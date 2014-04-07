@@ -9,15 +9,16 @@ class AdaptorsSettings(object):
     """ Configuration for the Request Hub Adaptors """
 
     # Outernet Facebook Adaptor
-    OFB_APP_ID = ''
-    OFB_APP_SECRET = ''
+    OFB_APP_ID = '$FB_APP_ID'
+    OFB_APP_SECRET = '$FB_APP_SECRET'
     OFB_PAGE_ID = '208511276012855'  # https://www.facebook.com/OuternetForAll
 
 
 class Base(AdaptorsSettings, object):
     """ Base configuration """
     DEBUG = False
-    TeSTING = False
+    TESTING = False
+    SECRET = '$SECRET'
 
 
 class Testing(Base):
