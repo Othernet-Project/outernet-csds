@@ -10,6 +10,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Content
+  ancestor: yes
+  properties:
+  - name: submitted
+    direction: desc
+
 - kind: Request
   properties:
   - name: broadcast
