@@ -8,6 +8,8 @@ These models are used to persist data which is used by adaptors and the hub.
 
 from __future__ import unicode_literals, print_function
 
+import datetime
+
 from google.appengine.ext import ndb
 from google.appengine.api import images
 from werkzeug.urls import url_quote_plus
@@ -166,7 +168,8 @@ class HarvestHistory(ndb.Model):
         k = cls.get_key(adaptor)
         h = k.get()
         if not h:
-            return
+            # If there's no timestamp, return the beginning of UNIX epoch
+            return datetime.datetime.utcfromtimestamp(0)
         return h.timestamp
 
     @classmethod
