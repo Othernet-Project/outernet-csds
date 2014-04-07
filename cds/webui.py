@@ -19,7 +19,7 @@ from .forms import ContentForm
 
 class WebUIList(HtmlRoute):
     name = 'cds_webui_list'
-    path = '/cds/'
+    path = '/requests/'
     template_name = 'cds/list.html'
 
     def get_context(self):
@@ -30,7 +30,7 @@ class WebUIList(HtmlRoute):
 
 class WebUIRequest(FormRoute):
     name = 'cds_webui_request'
-    path = '/cds/<int:request_id>'
+    path = '/requests/<int:request_id>'
     template_name = 'cds/request.html'
     form_class = ContentForm
 
