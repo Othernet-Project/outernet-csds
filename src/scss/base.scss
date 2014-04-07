@@ -99,3 +99,20 @@ button {
   padding: 0.6em 1em;
   cursor: pointer;
 }
+
+form.inline {
+  display: inline;
+  vertical-align: baseline;
+
+  button {
+    font-size: 80%;
+    padding: 0.3em 0.5em;
+    vertical-align: middle;
+  }
+}
+
+.suggestion-timestamp {
+  font-size: 80%;
+  display: block;
+  font-weight: bold;
+}
