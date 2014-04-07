@@ -10,12 +10,13 @@ from __future__ import unicode_literals, print_function
 
 from google.appengine.ext import ndb
 from google.appengine.api import images
+from werkzeug.urls import url_quote_plus
 
 from .keys import generate_api_key
 
 ADAPTOR_KEY_PREFIX = 'ra'
 
-__all__ = ('RemoteAdaptor', 'Request', 'RequestConstants')
+__all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content')
 
 
 class RequestConstants(object):
@@ -148,6 +149,11 @@ class Content(ndb.Model):
 
     url = ndb.StringProperty(required=True)
     submitted = ndb.DateTimeProperty(auto_now_add=True)
+    votes = ndb.IntegerProperty(default=0)
+
+    @property
+    def quoted_url(self):
+        return url_quote_plus(self.url)
 
 
 class HarvestHistory(ndb.Model):

@@ -75,3 +75,11 @@ class RequestTestCase(DatastoreTestCase):
         self.assertEqual(r[2].posted.day, 2)
         self.assertEqual(r[3].posted.day, 1)
 
+
+class ContentTestCase(DatastoreTestCase):
+    """ Tests related to content suggestion model """
+
+    def test_url_quoting(self):
+        c = Content(url='http://test.com/')
+        self.assertEqual(c.quoted_url, 'http%3A%2F%2Ftest.com%2F')
+
