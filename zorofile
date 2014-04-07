@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 from zoro import *
+from shutil import copyfile, copytree
 
 SDK_PATH = '/Program\\ Files\\ (x86)/Google/google_appengine'
+CONF_PATCH_FILE = 'conf.txt'
+CONF_FILE = 'build/app/conf.py'
 ERROR_STATUS = 1
+
+CSS_FILES = ['base']
 
 class Targets(Make):
     """
@@ -17,6 +22,16 @@ class Targets(Make):
         """ Internal method to simplify command checks """
         if where(cmd) is None: 
             err(msg, ERROR_STATUS)
+
+    def _patch_conf(self):
+        patch = read(CONF_PATCH_FILE)
+        pairs = [i.split('=', 1) for i in patch.split('\n') if '=' in i]
+        conf = read(CONF_FILE)
+        for p in pairs:
+            conf = conf.replace('$%s' % p[0], p[1])
+        cf = open(CONF_FILE, 'w')
+        cf.write(conf)
+        cf.close()
 
     def clean(self):
         """ remove build directory """
@@ -55,6 +70,7 @@ class Targets(Make):
     def dev(self):
         """ start live compilation of all sources and the GAE server """
         wait_for_interrupt(
+            run('compass watch -c tools/compass.rb'),
             run(python('%s/dev_appserver --port 8080 '
                         '--host 0.0.0.0 --skip_sdk_update_check yes '
                         '--log_level=debug .' % SDK_PATH)),
@@ -70,12 +86,12 @@ class Targets(Make):
     def build(self):
         """ prepares the project for deployment """
         self.clean()
-        copytree('app', 'build/app')
-        copytree('templates', 'build/templates')
-        copytree('vendor', 'build/vendor')
+        for d in ['app', 'cds', 'css', 'ra', 'rh', 'static', 'templates',
+                  'vendor']:
+            copytree(d, 'build/%s' % d)
         copyfile('app.yaml', 'build/app.yaml')
+        copyfile('cron.yaml', 'build/cron.yaml')
         copyfile('index.yaml', 'build/index.yaml')
-        run('node tools/r.js -o tools/build.js', True)
         cleanup('build', '*.pyc')
         cleanup('build', '*.swp')
         cleanup('build/vendor', '*.egg-info')
@@ -87,10 +103,10 @@ class Targets(Make):
             run(node_local('cleancss -c -b -o %(f)s %(f)s' % {'f': f}),
                 wait=True)
         run(python('tools/cachebust build/templates'), True)
-        run(python('tools/static_pages build/templates build/static'), True)
+        self._patch_conf()
 
     def deploy(self):
-        """ build and deploy the pap on GAE """
+        """ build and deploy the app on GAE """
         self.build()
         if not os.path.exists('build/ef/secret.py'):
             err('Secret key file missing! Deployment is aborted.',

@@ -11,8 +11,9 @@ import StringIO
 import datetime
 import re
 
-import Image
+from google.appengine.api.images import Image, NotImageError
 
+from .db import Request as RequestModel, RequestConstants
 from .exceptions import *
 
 __all__ = ('Request',)
@@ -27,7 +28,7 @@ BASE64_RE = re.compile(r'^([A-Za-z0-9+/]{4})*'  # normal base-64 blocks
                        r')$')
 
 
-class Request(object):
+class Request(RequestConstants):
     """ Content requests
 
     The ``Request`` class represents content requests and provides methods for
@@ -42,57 +43,6 @@ class Request(object):
     BinaryDecodeError = BinaryDecodeError
     ImageDecodeError = ImageDecodeError
     ImageFormatError = ImageFormatError
-
-    # Request worlds
-    ONLINE = 1
-    OFFLINE = 0
-    WORLDS = [ONLINE, OFFLINE]
-
-    # Request types
-    TRANSCRIBED = 1
-    NONTRANSCRIBED = 0
-    TYPES = [TRANSCRIBED, NONTRANSCRIBED]
-
-    # Request formats
-    TEXT = 'text/plain'
-    PNG = 'image/png'
-    JPG = 'image/jpg'
-    GIF = 'image/gif'
-    IMAGE = [PNG, JPG, GIF]
-    FORMATS = [TEXT, PNG, JPG, GIF]
-
-    # Mapping between formats and types
-    CONTENT_TYPES = {
-        TEXT: TRANSCRIBED,
-        PNG: NONTRANSCRIBED,
-        JPG: NONTRANSCRIBED,
-        GIF: NONTRANSCRIBED,
-    }
-
-    # PIL-related constants
-    PIL_PNG = 'PNG'
-    PIL_JPG = 'JPEG'
-    PIL_GIF = 'GIF'
-    PIL_FORMATS = [PIL_PNG, PIL_JPG, PIL_GIF]
-
-    # Request topics
-    TOPICS = [
-        'agriculture',
-        'arts',
-        'business',
-        'computers',
-        'economy',
-        'education',
-        'health',
-        'home',
-        'kids',
-        'nature',
-        'news',
-        'society',
-        'sports',
-        'sports',
-        'technology',
-    ]
 
     def __init__(self, adaptor, content, timestamp, world, content_format,
                  language=None, content_language=None, topic=None,
@@ -154,20 +104,13 @@ class Request(object):
             decoded = self.decode_binary()
             img = self.image_from_string(decoded)
             # Check if image is broken
-            try:
-                # It seems opening an invalid image raises IOError before we
-                # even get to this point. However, there might still be cases
-                # where IOError isn't raised, so we are including the snipped.
-                img.verify()
-            except Exception:
-                raise ImageFormatError('Image data is not valid')
-            # Check if image is in supported format
             fmt = img.format
             if fmt not in self.PIL_FORMATS:
                 raise ImageFormatError('Image format %s not supported' % fmt)
+            fmt = self.PIL_FORMAT_MAPPINGS[fmt]
             # Check if image format matches the declared content format
             dfmt = self.content_format.split('/')[1]
-            if fmt.lower() != dfmt:
+            if fmt != dfmt:
                 raise ImageFormatError('Image format %s does not match '
                                        'content format %s' % (
                                            fmt, self.content_format))
@@ -188,6 +131,34 @@ class Request(object):
         self.check_content_data()
         return self
 
+    def prepare(self):
+        """ Return an unsaved entity """
+        if not self.processed_content:
+            raise RequestError('Cannot persist unprocessed request')
+        r = RequestModel(
+            adaptor_name=self.adaptor_name,
+            adaptor_source=self.adaptor_source,
+            adaptor_trusted=self.adaptor_trusted,
+            content_type=self.content_type,
+            content_format=self.content_format,
+            content_language=self.content_language,
+            world=self.world,
+            language=self.language,
+            topic=self.topic,
+            posted=self.posted,
+            processed=self.processed,
+        )
+        if self.content_type == self.TRANSCRIBED:
+            r.text_content = self.processed_content
+        else:
+            r.binary_content = self.processed_content
+        return r
+
+    def persist(self):
+        r = self.prepare()
+        r.put()
+        return r
+
     def decode_binary(self):
         """ Decodes binary data """
         try:
@@ -199,12 +170,10 @@ class Request(object):
     @staticmethod
     def image_from_string(s):
         """ Converts a string to PIL's Image object """
-        buff = StringIO.StringIO()
-        buff.write(s)
-        buff.seek(0)
         try:
-            img = Image.open(buff)
-        except IOError:
+            img = Image(image_data=s)
+            img.format  # Access the `format` attrib to trigger the exception
+        except NotImageError:
             raise ImageDecodeError('Cannot load image from string')
         return img
 

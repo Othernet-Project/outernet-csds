@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1 class="large"><a href="/">Outernet CSDS</a></h1>
+{% endblock %}
+
+{% block content %}
+<div class="read">
+    <p class="intro">
+    Welcome to Outernet Content Selection and Discovery System (CSDS). This
+    site is part of <a href="https://www.outernet.is/">Outernet project</a>,
+    and a testbed for the production CSDS. Feel free to kick the tires and 
+    <a href="https://discuss.outernet.is/">let us know</a> what you think.
+    </p>
+
+    <p>For those familar with the project, please keep in mind that Outernet is not 
+    live yet. So, everything here is just a simulation. However, data gathered 
+    during test runs _will_ influence the final systems, so the role of test users
+    is quite important, possibly more so now than later. We thank you in advance
+    for taking part in developing Outernet.</p>
+
+    <h2>How? What? Where?</h2>
+
+    <p>Currently, the only means of submitting requests is via the Outernet's
+    <a href="https://www.facebook.com/OuternetForAll">Facebook page</a>. Anything
+    posted on this page is treated as a request for content and will be harvested
+    every 30 minutes by our server. The harvested requests are put in a queue, and
+    await for content suggestions.</p>
+
+    <p>You can see the requests that are in the system by going to the 
+    <a href="/requests/">request list page</a>.</p>
+
+    <p>For each harvested request, you can make content suggestions. This is
+    currently quite simple: just paste the page's address (URL) and hit
+    "Suggest". The URL must be valid (should not be missing or return errors), and
+    duplicate URLs are not accepted.</p>
+
+    <p>You can also vote on suggested content.</p>
+
+    <h2>No user accoutns</h2>
+
+    <p>Four parts laziness and six parts geniuine wish for a completely anonymous
+    system, the concept version of CSDS has no user accounts. This gives you
+    freedom to (ab)use the system in any way conceivable. We hope to learn from
+    this as much as we can before we start imposing any form of constraint.</p>
+
+    <h2>Source code</h2>
+
+    <p>
+    The complete source code for this site is 
+    <a href="https://github.com/Outernet-Project/outernet-csds">available on GitHub</a> 
+    under <a href="https://www.gnu.org/copyleft/gpl.html">GPLv3</a> license.
+    </p>
+</div>
+{% endblock %}

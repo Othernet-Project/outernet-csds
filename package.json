@@ -1,0 +1,6 @@
+{
+  "name": "outernet-csds",
+  "devDependencies": {
+    "clean-css": "~2.1.8"
+  }
+}

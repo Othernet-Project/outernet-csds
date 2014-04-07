@@ -1,0 +1,86 @@
+{% macro form_tag(action, method="POST", classes=None, id=None, multipart=False) %}
+<form 
+    {% if action %}action="{{ action }}"{% endif %}
+    {% if method in ['GET', 'POST'] %}method="{{ method }}"{% else %}method="POST"{% endif %}
+    {% if classes %}class="{{ classes }}"{% endif %}
+    {% if id %}id="{{ id }}"{% endif %}
+    {% if multipart %}enctype="multipart/form-data"{% endif %}>
+    {% if method not in ['GET', 'POST'] %}
+    {{ hidden_field('_method', method) }}
+    {% endif %}
+{% endmacro %}
+
+
+{% macro text_field(form_name, name, type="text", placeholder=None, required=True, validates=None, label=None) %}
+<p class="field field-{{ type }}" id="{{ form_name }}-{{ name }}-field">
+<label for="{{ form_name }}-{{ name }}">{{ label or placeholder }}:{% if required %}<span class="required">*</span>{% endif %}</label>
+<input 
+    type="{{ type }}" 
+    name="{{ name }}" 
+    id="{{ form_name }}-{{ name }}"
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if required %}required form:required="true"{% endif %}
+    {% if validates %}form:validate="{{ validates }}"{% endif %}>
+    <form:error name="{{ name }}" formatter="escape">
+</p>
+{% endmacro %}
+
+{% macro file_field(form_name, name, label, required=True) %}
+<p class="field field-file" id="{{ form_name }}-{{ name }}-field">
+<label for="{{ form_name }}-{{ name }}">{{ label }}:{% if required %}<span class="required">*</span>{% endif %}</label>
+<input 
+    type="file" 
+    id="{{ form_name }}-{{ name }}"
+    name="{{ name }}"
+    {% if required %}required form:required="true"{% endif %}>
+<form:error name="{{ name }}" formatter="escape">
+</p>
+
+{% endmacro %}
+
+{% macro textarea(form_name, name, placeholder=None, required=True, validates=None, label=None) %}
+<div class="field field-textarea" id="{{ form_name }}-{{ name }}-field">
+    <label for="{{ form_name }}-{{ name }}">{{ label or placeholder }}:{% if required %}<span class="required">*</span>{% endif %}</label>
+    <form:error name="{{ name }}" formatter="escape">
+    <textarea 
+        id="{{ form_name }}-{{ name }}" 
+        name="{{ name }}" 
+        {% if required %}required form:required="true"{% endif %}
+        {% if validates %}form:validate="{{ validates }}"{% endif %}
+        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
+    </textarea>
+</div>
+{% endmacro %}
+
+{% macro password_field(form_name, name, placeholder="Your password", required=True, label=None) %}
+    {{ text_field(form_name, name, type="password", placeholder=placeholder, required=required, label=label) }}
+{% endmacro %}
+
+{% macro email_field(form_name, name, placeholder="Your email", required=True, label=None) %}
+    {{ text_field(form_name, name, placeholder=placeholder, required=required, validates="email", label=label) }}
+{% endmacro %}
+
+{% macro hidden_field(name, value) %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+{% endmacro %}
+
+{% macro checkbox(form_name, name, label, id, value, default=False) %}
+    <p class="field field-checkbox" id="{{ form_name }}-{{ name }}-field">
+    <input 
+        type="checkbox" 
+        name="{{ name }}" 
+        id="{{ form_name }}-{{ name }}-{{ id }}" 
+        value="{{ value }}"
+        {% if default %}checked{% endif %}>
+    <label for="{{ form_name }}-{{ name }}-{{ id }}">{{ label }}</label>
+    <form:error name="{{ name }}" formatter="escape">
+    </p>
+{% endmacro %}
+
+{% macro submit_button(label, classes="") %}
+    <button type="submit"{% if classes %} class="{{ classes }}"{% endif %}>{{ label }}</button>
+{% endmacro %}
+
+{% macro button(label, classes="") %}
+    <button type="button"{% if classes %} class="{{ classes }}"{% endif %}>{{ label }}</button>
+{% endmacro %}

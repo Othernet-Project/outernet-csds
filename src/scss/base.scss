@@ -1,0 +1,141 @@
+@import "compass/reset";
+@import "compass/utilities/text/replacement";
+
+body, html {
+  font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  line-height: 150%;
+  background: #eee;
+  color: #555;
+}
+
+body {
+  padding: 1em;
+}
+
+h1 {
+  width: image-width('logo.png');
+  height: image-height('logo.png');
+  margin-bottom: 1em;
+
+  a {
+    display: inline-block;
+    @include replace-text-with-dimensions('logo.png');
+  }
+
+  &.large {
+    width: image-width('logo_big.png');
+    height: image-height('logo_big.png');
+    margin-top: 100px;
+
+    a {
+      @include replace-text-with-dimensions('logo_big.png');
+    }
+  }
+}
+
+h2 {
+  margin: 1em 0;
+  font-size: 150%;
+  line-height: 110%;
+  color: #777;
+}
+
+li {
+  margin: 0.5em 0;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+.nav {
+  background: #e0e0e0;
+  margin: 1em 0;
+  font-size: 80%;
+
+  a {
+    display: inline-block;
+    padding: 0.4em 1em;
+    background: #555;
+    color: #eee;
+    text-decoration: none;
+  }
+}
+
+.request {
+  border: 1px solid #ddd;
+  padding: 0.5em 1em;
+  background: #fff;
+  
+  .request-timestamp {
+    display: block;
+    font-size: 80%;
+  }
+}
+
+label {
+  font-weight: bold;
+
+  .required {
+    color: #a33;
+  }
+}
+
+input {
+  padding: 0.4em;
+  border: 1px solid #ddd;
+  background: #fff;
+  width: 300px;
+  font-size: 100%;
+}
+
+.field-error {
+  border-color: #a33;
+}
+
+.buttons {
+  border-top: 1px solid #ddd;
+  padding-top: 0.5em;
+  margin-top: 0.5em;
+}
+
+.error-message {
+  color: #a33;
+}
+
+button {
+  font-weight: bold;
+  border: 1px solid transparent;
+  background: #298bed;
+  color: #fff;
+  font-size: 100%;
+  padding: 0.6em 1em;
+  cursor: pointer;
+}
+
+form.inline {
+  display: inline;
+  vertical-align: baseline;
+
+  button {
+    font-size: 80%;
+    padding: 0.3em 0.5em;
+    vertical-align: middle;
+  }
+}
+
+.suggestion-timestamp {
+  font-size: 80%;
+  display: block;
+  font-weight: bold;
+}
+
+.read {
+  max-width: 600px;
+
+  .intro {
+    font-size: 120%;
+    line-height: 130%;
+  }
+}

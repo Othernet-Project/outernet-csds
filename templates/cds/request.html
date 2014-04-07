@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% from 'utils/macros.html' import form_tag, submit_button %}
+
+{% block title %}Request #{{ req.key.id() }}{% endblock %}
+
+{% block content %}
+<p class="nav"><a href="{{ url_for('cds_webui_list') }}">All requests</a></p>
+
+<div class="request">
+<p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }}</p>
+<p>{{ req.text_content }}</p>
+</div>
+<h2>Content suggestions</h2>
+{% if contents %}
+<ul>
+{% for content in contents %}
+<li class="suggestion">
+<a href="{{ content.url }}">{{ content.url }}</a>
+{{ form_tag(action=url_for('css_webui_vote', request_id=req.key.id(), url=content.quoted_url), method='PUT', classes='inline') }}
+{{ csrf_tag }}
+{{ submit_button('Vote') }}
+</form>
+<span class="votes">{{ content.votes }} vote{% if content.votes != 1 %}s{% endif %}
+<span class="suggestion-timestamp"><time datetime="{{ content.submitted.strftime('%Y-%m-%dT%H:%MZ') }}">{{ content.submitted.strftime('%Y-%m-%d %H:%M') }} UTC</time></span>
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>There are no content suggestions.</p>
+{% endif %}
+
+<h2>Suggest content</h2>
+
+{{ form|safe }}
+{% endblock %}
