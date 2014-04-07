@@ -7,6 +7,8 @@ community members so content suggestions can be made.
 
 from __future__ import unicode_literals, print_function
 
+import urllib2
+
 from google.appengine.ext import ndb
 from utils.routes import HtmlRoute, FormRoute
 
@@ -44,6 +46,16 @@ class WebUIRequest(FormRoute):
 
     def form_valid(self):
         url = self.form.valid_data['url']
+
+        # Check URL first (and yes, that's a somewhat expensive operation, but
+        # we still do it before checking the datastore because datastore has no
+        # locking and if we take our sweet time before the read and write, the
+        # chance of a duplicate increases).
+        try:
+            urllib2.urlopen(url, timeout=10)
+        except Exception:
+            self.form.errors['url'] = ('This URL could not be opened.')
+            return self.form_invalid()
 
         key = ndb.Key('Request', self.req.key.id(), 'Content', url)
         if key.get():
