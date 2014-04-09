@@ -26,7 +26,7 @@
 </p>
 
 <div class="request">
-    <p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }} {% if rev %}(showing community edit #{{ rev }}){% elif rev == 0 %}(showing original version){% endif %}</p>
+    <p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }} <strong>{% if rev %}(showing community edit #{{ rev }}){% elif rev == 0 %}(showing original version){% endif %}</strong></p>
     {{ details(content) }}
 </div>
 
