@@ -100,7 +100,25 @@ class RemoteAdaptor(ndb.Model):
         self.renew_key()
 
 
-class Revision(ndb.Model):
+class LocaleMixin(object):
+    """ Mixin that provides shortcuts for showing language names """
+
+    @property
+    def content_language_name(self):
+        try:
+            return babel.Locale(self.content_language).get_language_name()
+        except babel.UnknownLocaleError:
+            return None
+
+    @property
+    def language_name(self):
+        try:
+            return babel.Locale(self.language).get_langauge_name()
+        except babel.UnknownLocaleError:
+            return None
+
+
+class Revision(LocaleMixin, ndb.Model):
     """ Model used for repeated structured property in Request model
 
     This model persists the data related to revisions.
@@ -114,7 +132,7 @@ class Revision(ndb.Model):
     topic = ndb.StringProperty(choices=RequestConstants.TOPICS)
 
 
-class Request(RequestConstants, ndb.Model):
+class Request(LocaleMixin, RequestConstants, ndb.Model):
     """ Model for persisting requests """
 
     # Adaptor information
@@ -160,20 +178,6 @@ class Request(RequestConstants, ndb.Model):
             return None
         return getattr(rev, field_name)
 
-    @property
-    def content_language_name(self):
-        try:
-            return babel.Locale(self.content_language).get_language_name()
-        except babel.UnknownLocaleError:
-            return None
-
-    @property
-    def language_name(self):
-        try:
-            return babel.Locale(self.language).get_langauge_name()
-        except babel.UnknownLocaleError:
-            return None
-
     def set_content(self, text_content=None, content_language=None,
                     language=None, topic=None):
         """ Save an edit into revisions """
@@ -201,6 +205,9 @@ class Request(RequestConstants, ndb.Model):
             return self.revisions[self.current_revision]
         except IndexError:
             return None
+
+    def get_rev(self, rev):
+        return self.revisions[rev]
 
     def revert(self):
         """ Reverts to previous revision """
