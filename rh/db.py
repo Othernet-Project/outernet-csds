@@ -13,6 +13,7 @@ import datetime
 from google.appengine.ext import ndb
 from google.appengine.api import images
 from werkzeug.urls import url_quote_plus
+import babel
 
 from .keys import generate_api_key
 from .properties import LanguageProperty
@@ -158,6 +159,20 @@ class Request(RequestConstants, ndb.Model):
         except IndexError:
             return None
         return getattr(rev, field_name)
+
+    @property
+    def content_language_name(self):
+        try:
+            return babel.Locale(self.content_language).get_language_name()
+        except babel.UnknownLocaleError:
+            return None
+
+    @property
+    def language_name(self):
+        try:
+            return babel.Locale(self.language).get_langauge_name()
+        except babel.UnknownLocaleError:
+            return None
 
     def set_content(self, text_content=None, content_language=None,
                     language=None, topic=None):
