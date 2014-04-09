@@ -86,8 +86,8 @@ class Targets(Make):
     def build(self):
         """ prepares the project for deployment """
         self.clean()
-        for d in ['app', 'cds', 'css', 'ra', 'rh', 'static', 'templates',
-                  'vendor']:
+        for d in ['app', 'cds', 'css', 'ra', 'rh', 'rqm', 'migrations', 
+                  'static', 'templates', 'vendor']:
             copytree(d, 'build/%s' % d)
         copyfile('app.yaml', 'build/app.yaml')
         copyfile('cron.yaml', 'build/cron.yaml')
@@ -116,3 +116,4 @@ class Targets(Make):
 
 if __name__ == '__main__':
     Targets()()
+
