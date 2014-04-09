@@ -183,6 +183,7 @@ class Request(RequestConstants, ndb.Model):
             return
 
         rev = Revision(
+            timestamp=datetime.datetime.utcnow(),
             text_content=text_content or self.text_content,
             content_language=content_language or self.content_language,
             language=language or self.language,
@@ -192,7 +193,7 @@ class Request(RequestConstants, ndb.Model):
         if self.current_revision is None:
             self.current_revision = 0
         else:
-            self.current_revision += 1
+            self.current_revision = len(self.revisions) - 1
 
     @property
     def content(self):
