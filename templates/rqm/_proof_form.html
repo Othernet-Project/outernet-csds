@@ -1,0 +1,12 @@
+{% from 'utils/macros.html' import form_tag, textarea, text_field, select_list, submit_button %}
+
+{{ form_tag(classes='vertical') }}
+    {{ csrf_tag }}
+    {{ textarea('proofs', 'text_content', placeholder='request body text', label='body', required=False) }}
+    {{ select_list(topics, 'proofs', 'topic', placeholder='select subject of the request', label='topic', validates='topic', required=False) }}
+    {{ select_list(languages, 'proofs', 'content_language', placeholder='select language of the request text', label='request body language', validates='locale', required=False) }}
+    {{ select_list(languages, 'proofs', 'language', placeholder='select language of broadcast content', label='broadcast content language', validates='locale', required=False) }}
+    <p class="buttons">
+        {{ submit_button('Save') }}
+    </p>
+</form>
