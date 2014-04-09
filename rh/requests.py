@@ -141,17 +141,25 @@ class Request(RequestConstants):
             adaptor_trusted=self.adaptor_trusted,
             content_type=self.content_type,
             content_format=self.content_format,
-            content_language=self.content_language,
             world=self.world,
-            language=self.language,
-            topic=self.topic,
             posted=self.posted,
             processed=self.processed,
         )
         if self.content_type == self.TRANSCRIBED:
-            r.text_content = self.processed_content
+            r.set_content(
+                text_content=self.processed_content,
+                language=self.language,
+                content_language=self.content_language,
+                topic=self.topic,
+            )
         else:
             r.binary_content = self.processed_content
+            r.set_content(
+                text_content=None,
+                language=self.language,
+                content_language=self.content_language,
+                topic=self.topic,
+            )
         return r
 
     def persist(self):

@@ -78,5 +78,14 @@ class WebUIRequest(FormRoute):
             -Content.votes, -Content.submitted).fetch()
         ctx['contents'] = contents
         ctx['count'] = len(contents)
+        try:
+            rev = int(self.request.args.get('rev'))
+        except TypeError, ValueError:
+            rev = None
+        ctx['rev'] = rev
+        if rev is None:
+            ctx['content'] = self.req.content
+        else:
+            ctx['content'] = self.req.get_rev(rev)
         return ctx
 

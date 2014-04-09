@@ -30,6 +30,11 @@ handlers:
   secure: always
   login: admin
 
+- url: /migrations/001
+  script: migrations.001.app
+  secure: always
+  login: admin
+
 - url: /.*
   script: app.main.app
   secure: always
