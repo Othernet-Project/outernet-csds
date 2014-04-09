@@ -3,18 +3,31 @@
 
 {% block title %}Request #{{ req.key.id() }}{% endblock %}
 
+{% macro timestamp(dt) %}
+{% if dt %}
+<time datetime="{{ dt.strftime('%Y-%m-%dT%H:%MZ') }}">{{ dt.strftime('%Y-%m-%d %H:%M') }} UTC</time>
+{% endif %}
+{% endmacro %}
+
+{% macro details(r) %}
+<p>{{ r.text_content }}</p>
+<p class="request-meta"><strong>topic:</strong> {{ r.topic or 'not specified' }}</p>
+<p class="request-meta"><strong>request body language:</strong> {{ r.content_language_name or 'not specified' }}</p>
+<p class="request-meta"><strong>broadcast content langauge:</strong> {{ r.language_name or 'not specified' }}</p>
+{% endmacro %}
+
 {% block content %}
 <p class="nav">
 <a href="{{ url_for('cds_webui_list') }}">All requests</a>
 <a href="{{ url_for('rqm_webui_proof', request_id=req.key.id()) }}">Help clarify this request</a>
+{% if rev != None %}
+<a href="{{ url_for('cds_webui_request', request_id=req.key.id()) }}">Show current version</a>
+{% endif %}
 </p>
 
 <div class="request">
-<p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }}</p>
-<p>{{ req.text_content }}</p>
-<p class="request-meta"><strong>topic:</strong> {{ req.topic or 'not specified' }}</p>
-<p class="request-meta"><strong>request body language:</strong> {{ req.content_language_name or 'not specified' }}</p>
-<p class="request-meta"><strong>broadcast content langauge:</strong> {{ req.language_name or 'not specified' }}</p>
+    <p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }} {% if rev %}(showing community edit #{{ rev }}){% elif rev == 0 %}(showing original version){% endif %}</p>
+    {{ details(content) }}
 </div>
 
 <h2>Content suggestions</h2>
@@ -28,7 +41,7 @@
 {{ submit_button('Vote') }}
 </form>
 <span class="votes">{{ content.votes }} vote{% if content.votes != 1 %}s{% endif %}
-<span class="suggestion-timestamp"><time datetime="{{ content.submitted.strftime('%Y-%m-%dT%H:%MZ') }}">{{ content.submitted.strftime('%Y-%m-%d %H:%M') }} UTC</time></span>
+<span class="suggestion-timestamp">{{ timestamp(content.submitted) }}</span>
 </li>
 {% endfor %}
 </ul>
@@ -39,4 +52,21 @@
 <h2>Suggest content</h2>
 
 {{ form|safe }}
+
+{% if req.current_revision > 0 %}
+<h2>Community edits</h2>
+<ul class="request-revisions">
+    {% for revision in req.revisions %}
+    <li>
+    {% if loop.index == 1 %}
+    original:
+    {% else %}
+    #{{ loop.index - 1 }}:
+    {% endif %}
+    {{ timestamp(revision.timestamp) }}
+    (<a href="{{ url_for('cds_webui_request', request_id=req.key.id(), rev=loop.index - 1) }}">see this version</a>)
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endblock %}
