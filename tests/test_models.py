@@ -40,16 +40,24 @@ class RequestTestCase(DatastoreTestCase):
                 adaptor_trusted=False,
                 content_type=RequestConstants.TRANSCRIBED,
                 content_format=RequestConstants.TEXT,
-                text_content='We need content',
-                content_language='en',
                 world=RequestConstants.OFFLINE,
-                language='fr',
-                topic=RequestConstants.TOPICS[0],
                 posted=datetime.datetime(2014, 4, 1),
                 processed=datetime.datetime(2014, 4, 1),
                 broadcast=False):
         """ Factory method to generate request entities """
         return Request(**locals())
+
+    @staticmethod
+    def set_content(request,
+                    text_content='We need content',
+                    content_language='en',
+                    language='fr',
+                    topic=RequestConstants.TOPICS[0]):
+        """ Set the content for a request """
+        kwargs = locals()
+        r = kwargs.pop('request')
+        r.set_content(**kwargs)
+        return r
 
     def test_cds_broadcast_flag(self):
         """ Should fetch entities without broadcast flag """
@@ -74,6 +82,77 @@ class RequestTestCase(DatastoreTestCase):
         self.assertEqual(r[1].posted.day, 3)
         self.assertEqual(r[2].posted.day, 2)
         self.assertEqual(r[3].posted.day, 1)
+
+    def test_create_revision(self):
+        """ Should add a new revision """
+        r = self.request()
+        self.set_content(r)
+        self.assertEqual(r.current_revision, 0)
+        self.assertEqual(r.revisions[0].text_content, 'We need content')
+
+    def test_add_new_revision(self):
+        """ Should update current revision and append revision data """
+        r = self.request()
+        self.set_content(r)
+        r.set_content(text_content='foo')
+        self.assertEqual(r.current_revision, 1)
+        self.assertEqual(r.revisions[1].text_content, 'foo')
+        self.assertEqual(r.revisions[1].text_content, r.text_content)
+
+    def test_content_properties(self):
+        """ Content properties should be computed from revisions """
+        r = self.request()
+        self.set_content(r)
+        self.assertEqual(r.text_content, 'We need content')
+        r.set_content(text_content='foo')
+        self.assertEqual(r.text_content, 'foo')
+
+    def test_setting_no_value_uses_original(self):
+        """ Should reuse original values for unspecified properties """
+        r = self.request()
+        self.set_content(r)
+        r.set_content(language='pt_BR')
+        # These should be reused
+        self.assertEqual(r.revisions[1].text_content,
+                         r.revisions[0].text_content)
+        self.assertEqual(r.revisions[1].content_language,
+                         r.revisions[0].content_language)
+        self.assertEqual(r.revisions[1].topic,
+                         r.revisions[0].topic)
+        # These shoould be updated
+        self.assertNotEqual(r.revisions[1].language,
+                            r.revisions[0].language)
+
+    def test_passing_no_arguments(self):
+        """ Setting content with no arguments should be a no-op """
+        r = self.request()
+        self.set_content(r)
+        r.set_content()
+        self.assertEqual(r.current_revision, 0)
+        self.assertEqual(len(r.revisions), 1)
+
+    def test_get_current_revision(self):
+        """ The ``content`` prop should return the current revision """
+        r = self.request()
+        self.set_content(r)
+        r.set_content(text_content='foo')
+        self.assertEqual(r.content, r.revisions[1])
+        r.current_revision = 0
+        self.assertEqual(r.content, r.revisions[0])
+
+    def test_revert(self):
+        """ Should revert to previous revision until there are no more """
+        r = self.request()
+        self.set_content(r)
+        r.set_content(text_content='foo')
+        r.set_content(language='pt_BR')
+        r.revert()
+        self.assertEqual(r.current_revision, 1)
+        r.revert()
+        self.assertEqual(r.current_revision, 0)
+        self.assertEqual(len(r.revisions), 3)
+        self.assertEqual(r.text_content, 'We need content')
+        self.assertEqual(r.language, 'fr')
 
 
 class ContentTestCase(DatastoreTestCase):
