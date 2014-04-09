@@ -28,6 +28,7 @@ csrf(app)
 # Web interface handlers
 register_module(app, 'cds.webui')
 register_module(app, 'css.webui')
+register_module(app, 'rqm.webui')
 
 # Cron job handlers
 register_module(app, 'ra.outernet_facebook')

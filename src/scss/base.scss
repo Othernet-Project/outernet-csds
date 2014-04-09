@@ -49,6 +49,10 @@ p {
   margin-bottom: 1em;
 }
 
+strong {
+  font-weight: bold;
+}
+
 .nav {
   background: #e0e0e0;
   margin: 1em 0;
@@ -60,6 +64,10 @@ p {
     background: #555;
     color: #eee;
     text-decoration: none;
+
+    &:hover {
+      background: #298bed;
+    }
   }
 }
 
@@ -68,9 +76,10 @@ p {
   padding: 0.5em 1em;
   background: #fff;
   
-  .request-timestamp {
+  .request-timestamp, .request-meta {
     display: block;
     font-size: 80%;
+    line-height: 100%;
   }
 }
 
@@ -82,12 +91,21 @@ label {
   }
 }
 
-input {
+input, select, textarea {
   padding: 0.4em;
   border: 1px solid #ddd;
   background: #fff;
   width: 300px;
   font-size: 100%;
+}
+
+textarea {
+  width: 280px;
+  height: 200px;
+}
+
+select {
+  font-size: 90%;
 }
 
 .field-error {
@@ -122,6 +140,25 @@ form.inline {
     font-size: 80%;
     padding: 0.3em 0.5em;
     vertical-align: middle;
+  }
+}
+
+form.vertical {
+  label {
+    display: block;
+    margin-top: 1em;
+
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  input, textarea, select {
+    width: 500px;
+  }
+
+  textarea {
+    width: 480px;
   }
 }
 

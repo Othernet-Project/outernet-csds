@@ -4,12 +4,19 @@
 {% block title %}Request #{{ req.key.id() }}{% endblock %}
 
 {% block content %}
-<p class="nav"><a href="{{ url_for('cds_webui_list') }}">All requests</a></p>
+<p class="nav">
+<a href="{{ url_for('cds_webui_list') }}">All requests</a>
+<a href="{{ url_for('rqm_webui_proof', request_id=req.key.id()) }}">Help clarify this request</a>
+</p>
 
 <div class="request">
 <p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }}</p>
 <p>{{ req.text_content }}</p>
+<p class="request-meta"><strong>topic:</strong> {{ req.topic or 'not specified' }}</p>
+<p class="request-meta"><strong>request body language:</strong> {{ req.content_language_name or 'not specified' }}</p>
+<p class="request-meta"><strong>broadcast content langauge:</strong> {{ req.language_name or 'not specified' }}</p>
 </div>
+
 <h2>Content suggestions</h2>
 {% if contents %}
 <ul>
