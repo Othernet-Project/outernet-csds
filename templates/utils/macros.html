@@ -35,7 +35,20 @@
     {% if required %}required form:required="true"{% endif %}>
 <form:error name="{{ name }}" formatter="escape">
 </p>
+{% endmacro %}
 
+{% macro select_list(data, form_name, name, placeholder=None, empty_value='', required=True, validates=None, label=None) %}
+<p class="field select-field" id="{{ forn_name }}-{{ name }}-field">
+<label for="{{ form_name }}-{{ name }}">{{ label or placeholder }}:{% if required %}<span class="required">*</span>{% endif %}</label>
+<select name="{{ name }}" id="{{ form_name }}-{{ name }}"
+    {% if required %}form:required="true" required{% endif %}
+    {% if validates %}form:validate="{{ validates }}"{% endif %}>
+    <option class="empty-value" value="{{ empty_value }}">{{ placeholder }}</option>
+    {% for value in data %}
+    <option value="{{ value[0] }}">{{ value[1] }}</option>
+    {% endfor %}
+</select>
+</p>
 {% endmacro %}
 
 {% macro textarea(form_name, name, placeholder=None, required=True, validates=None, label=None) %}

@@ -13,8 +13,10 @@ import datetime
 from google.appengine.ext import ndb
 from google.appengine.api import images
 from werkzeug.urls import url_quote_plus
+import babel
 
 from .keys import generate_api_key
+from .properties import LanguageProperty
 
 ADAPTOR_KEY_PREFIX = 'ra'
 
@@ -98,7 +100,39 @@ class RemoteAdaptor(ndb.Model):
         self.renew_key()
 
 
-class Request(RequestConstants, ndb.Model):
+class LocaleMixin(object):
+    """ Mixin that provides shortcuts for showing language names """
+
+    @property
+    def content_language_name(self):
+        try:
+            return babel.Locale(self.content_language).get_language_name()
+        except babel.UnknownLocaleError:
+            return None
+
+    @property
+    def language_name(self):
+        try:
+            return babel.Locale(self.language).get_langauge_name()
+        except babel.UnknownLocaleError:
+            return None
+
+
+class Revision(LocaleMixin, ndb.Model):
+    """ Model used for repeated structured property in Request model
+
+    This model persists the data related to revisions.
+
+    """
+
+    timestamp = ndb.DateTimeProperty()
+    text_content = ndb.TextProperty()
+    content_language = LanguageProperty()
+    language = LanguageProperty()
+    topic = ndb.StringProperty(choices=RequestConstants.TOPICS)
+
+
+class Request(LocaleMixin, RequestConstants, ndb.Model):
     """ Model for persisting requests """
 
     # Adaptor information
@@ -112,24 +146,72 @@ class Request(RequestConstants, ndb.Model):
     content_format = ndb.StringProperty(required=True,
                                         choices=RequestConstants.FORMATS)
     binary_content = ndb.BlobProperty(indexed=False, compressed=True)
-    text_content = ndb.TextProperty()
-    content_language = ndb.StringProperty()
+
+    # Computed content properties (derived from revision)
+    text_content = ndb.ComputedProperty(lambda s: s._rev_field('text_content'))
+    content_language = ndb.ComputedProperty(
+        lambda s: s._rev_field('content_language'))
+
+    # Broadcast information (derived from revision)
+    language = ndb.ComputedProperty(lambda s: s._rev_field('language'))
+    topic = ndb.ComputedProperty(lambda s: s._rev_field('topic'))
 
     # Metadata
     world = ndb.IntegerProperty(choices=RequestConstants.WORLDS)
 
-    # Broadcast information
-    language = ndb.StringProperty()
-    topic = ndb.StringProperty(choices=RequestConstants.TOPICS)
-
     # Timestamps
     posted = ndb.DateTimeProperty(required=True)
     processed = ndb.DateTimeProperty(required=True)
+    edited = ndb.DateTimeProperty()
     recorded = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
     # Workflow
     has_suggestions = ndb.BooleanProperty(default=False)
     broadcast = ndb.BooleanProperty(default=False)
+    current_revision = ndb.IntegerProperty()
+    revisions = ndb.StructuredProperty(Revision, repeated=True)
+
+    def _rev_field(self, field_name, rev=None):
+        try:
+            rev = self.revisions[rev or self.current_revision or 0]
+        except IndexError:
+            return None
+        return getattr(rev, field_name)
+
+    def set_content(self, text_content=None, content_language=None,
+                    language=None, topic=None):
+        """ Save an edit into revisions """
+
+        if not any([text_content, content_language, language, topic]):
+            # Nothing to do
+            return
+
+        rev = Revision(
+            timestamp=datetime.datetime.utcnow(),
+            text_content=text_content or self.text_content,
+            content_language=content_language or self.content_language,
+            language=language or self.language,
+            topic=topic or self.topic
+        )
+        self.revisions.append(rev)
+        if self.current_revision is None:
+            self.current_revision = 0
+        else:
+            self.current_revision = len(self.revisions) - 1
+
+    @property
+    def content(self):
+        try:
+            return self.revisions[self.current_revision]
+        except IndexError:
+            return None
+
+    def get_rev(self, rev):
+        return self.revisions[rev]
+
+    def revert(self):
+        """ Reverts to previous revision """
+        self.current_revision = max(0, self.current_revision - 1)
 
     @classmethod
     def fetch_cds_requests(cls):

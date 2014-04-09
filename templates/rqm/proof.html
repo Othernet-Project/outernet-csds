@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Proof request{% endblock %}
+
+{% block content %}
+<p class="nav">
+<a href="{{ url_for('cds_webui_list') }}">All requests</a>
+<a href="{{ url_for('cds_webui_request', request_id=request.key.id()) }}">Request page</a>
+</p>
+
+<h2>Proof request <a href="{{ url_for('cds_webui_request', request_id=request.key.id()) }}">#{{ request.key.id() }}</a></h2>
+
+{{ form|safe }}
+{% endblock %}

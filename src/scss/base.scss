@@ -1,5 +1,5 @@
 @import "compass/reset";
-@import "compass/utilities/text/replacement";
+@import "compass/typography/text/replacement";
 
 body, html {
   font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -41,12 +41,22 @@ h2 {
   color: #777;
 }
 
+h3 {
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  margin-top: 2em;
+}
+
 li {
   margin: 0.5em 0;
 }
 
 p {
   margin-bottom: 1em;
+}
+
+strong {
+  font-weight: bold;
 }
 
 .nav {
@@ -60,6 +70,10 @@ p {
     background: #555;
     color: #eee;
     text-decoration: none;
+
+    &:hover {
+      background: #298bed;
+    }
   }
 }
 
@@ -68,9 +82,14 @@ p {
   padding: 0.5em 1em;
   background: #fff;
   
-  .request-timestamp {
+  .request-timestamp, .request-meta {
     display: block;
     font-size: 80%;
+    line-height: 100%;
+  }
+
+  .request-timestamp strong {
+    background: #f9e75c;
   }
 }
 
@@ -82,12 +101,21 @@ label {
   }
 }
 
-input {
+input, select, textarea {
   padding: 0.4em;
   border: 1px solid #ddd;
   background: #fff;
   width: 300px;
   font-size: 100%;
+}
+
+textarea {
+  width: 280px;
+  height: 200px;
+}
+
+select {
+  font-size: 90%;
 }
 
 .field-error {
@@ -122,6 +150,25 @@ form.inline {
     font-size: 80%;
     padding: 0.3em 0.5em;
     vertical-align: middle;
+  }
+}
+
+form.vertical {
+  label {
+    display: block;
+    margin-top: 1em;
+
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  input, textarea, select {
+    width: 500px;
+  }
+
+  textarea {
+    width: 480px;
   }
 }
 

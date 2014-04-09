@@ -11,11 +11,14 @@ Repository layout
 
 The repository contains the following directories::
 
+    \
     ├───app         # Package that ties together all web-based components
     ├───cds         # Content Discovery Subsystem
     ├───css         # Content Selection Subsystem
     ├───ra          # Request Adaptors
     ├───rh          # Request Hub
+    ├───rqm         # Request Query Manager
+    ├───migrations  # Data migrations
     ├───src         # Compiled static assets (Compass, LiveScript)
     ├───static      # Static assets (JavaScript, CSS, images)
     ├───templates   # HTML and plain-text templates used by web-based UI

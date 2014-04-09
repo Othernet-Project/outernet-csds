@@ -1,5 +1,5 @@
 application: outernetcontentrequest
-version: 140407
+version: 140409
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -27,6 +27,11 @@ handlers:
 
 - url: /rh/harvests/bihourly
   script: app.main.app
+  secure: always
+  login: admin
+
+- url: /migrations/001
+  script: migrations.001.app
   secure: always
   login: admin
 
