@@ -19,31 +19,43 @@ class WebUIProof(FormRoute):
     form_class = ProofForm
     template_name = 'rqm/proof.html'
 
+    def PATCH(self, request_id):
+        revision = self.request.form['revision']
+        try:
+            revision = int(revision)
+        except ValueError:
+            self.abort(400, 'Invalid revision number')
+        if 0 > revision > self.req.current_revision:
+            self.abort(400, 'Revision number out of bounds')
+        self.req.current_revision = revision
+        self.req.put()
+        return self.redirect()
+
     def get_form_defaults(self):
         try:
-            return self.request.content.to_dict()
+            return self.req.content.to_dict()
         except AttributeError:
             # Most likely missing content, so we return empty dict instead
             return {}
 
     def on_dispatch(self):
-        self.request = ndb.Key('Request', int(self.kwargs['request_id'])).get()
-        if not self.request:
+        self.req = ndb.Key('Request', int(self.kwargs['request_id'])).get()
+        if not self.req:
             self.abort(404)
 
     def get_context(self):
         ctx = super(WebUIProof, self).get_context()
-        ctx['request'] = self.request
+        ctx['req'] = self.req
         return ctx
 
     def get_redirect_url(self):
         return self.url_for('cds_webui_request',
-                            request_id=self.request.key.id())
+                            request_id=self.req.key.id())
 
     def form_valid(self):
         content = self.form.valid_data.copy()
         content.pop('_csrf_token')
         print(content)
-        self.request.set_content(**content)
-        self.request.put()
+        self.req.set_content(**content)
+        self.req.put()
         return super(WebUIProof, self).form_valid()
