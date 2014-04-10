@@ -17,6 +17,7 @@ import babel
 
 from .keys import generate_api_key
 from .properties import LanguageProperty
+from .exceptions import DuplicateSuggestionError
 
 ADAPTOR_KEY_PREFIX = 'ra'
 
@@ -132,8 +133,22 @@ class Revision(LocaleMixin, ndb.Model):
     topic = ndb.StringProperty(choices=RequestConstants.TOPICS)
 
 
+class Content(ndb.Model):
+    """ Model to persist content suggestions """
+
+    url = ndb.StringProperty()
+    submitted = ndb.DateTimeProperty()
+    votes = ndb.IntegerProperty()
+
+    @property
+    def quoted_url(self):
+        return url_quote_plus(self.url)
+
+
 class Request(LocaleMixin, RequestConstants, ndb.Model):
     """ Model for persisting requests """
+
+    DuplicateSuggestionError = DuplicateSuggestionError
 
     # Adaptor information
     adaptor_name = ndb.StringProperty(required=True)
@@ -171,6 +186,9 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     current_revision = ndb.IntegerProperty()
     revisions = ndb.StructuredProperty(Revision, repeated=True)
 
+    # Content suggestions
+    content_suggestions = ndb.StructuredProperty(Content, repeated=True)
+
     def _rev_field(self, field_name, rev=None):
         try:
             rev = self.revisions[rev or self.current_revision or 0]
@@ -198,6 +216,14 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
             self.current_revision = 0
         else:
             self.current_revision = len(self.revisions) - 1
+
+    def suggest_url(self, url):
+        """ Add url to content suggestions """
+        if url in [c.url for c in self.content_suggestions]:
+            raise DuplicateSuggestionError('%s has already been '
+                                           'suggested' % url)
+        c = Content(url=url, submitted=datetime.datetime.utcnow(), votes=0)
+        self.content_suggestions.append(c)
 
     @property
     def content(self):
@@ -231,18 +257,6 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
         return cls.query(
             cls.broadcast == False
         ).order(-cls.posted).fetch()
-
-
-class Content(ndb.Model):
-    """ Model to persist content suggestions """
-
-    url = ndb.StringProperty(required=True)
-    submitted = ndb.DateTimeProperty(auto_now_add=True)
-    votes = ndb.IntegerProperty(default=0)
-
-    @property
-    def quoted_url(self):
-        return url_quote_plus(self.url)
 
 
 class HarvestHistory(ndb.Model):

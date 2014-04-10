@@ -8,28 +8,8 @@ from rh.db import *
 from tests.dbunit import DatastoreTestCase
 
 
-class RemoteAdaptorTestCase(DatastoreTestCase):
-    """ Tests related to RemoteAdaptor model """
-
-    def test_renew_key(self):
-        """ A new API key should be added """
-        ra = RemoteAdaptor()
-        with patch('os.urandom') as urandom:
-            urandom.return_value = 'a'
-            ra.renew_key()
-            self.assertEqual(ra.api_key, 'ra_86f7e437faa5a7fce15d')
-
-    def test_key_renews_on_put(self):
-        """ New entities' keys are automatically renewed """
-        ra = RemoteAdaptor(name='foo', source='bar', contact='baz')
-        with patch('os.urandom') as urandom:
-            urandom.return_value = 'a'
-            ra.put()
-            self.assertEqual(ra.api_key, 'ra_86f7e437faa5a7fce15d')
-
-
-class RequestTestCase(DatastoreTestCase):
-    """ Tests methods for fetching requests """
+class RequestFactoryMixin(object):
+    """ Factory methods for tests using request entities """
 
     def tearDown(self):
         for k in Request.query().fetch(keys_only=True):
@@ -58,6 +38,30 @@ class RequestTestCase(DatastoreTestCase):
         r = kwargs.pop('request')
         r.set_content(**kwargs)
         return r
+
+
+class RemoteAdaptorTestCase(DatastoreTestCase):
+    """ Tests related to RemoteAdaptor model """
+
+    def test_renew_key(self):
+        """ A new API key should be added """
+        ra = RemoteAdaptor()
+        with patch('os.urandom') as urandom:
+            urandom.return_value = 'a'
+            ra.renew_key()
+            self.assertEqual(ra.api_key, 'ra_86f7e437faa5a7fce15d')
+
+    def test_key_renews_on_put(self):
+        """ New entities' keys are automatically renewed """
+        ra = RemoteAdaptor(name='foo', source='bar', contact='baz')
+        with patch('os.urandom') as urandom:
+            urandom.return_value = 'a'
+            ra.put()
+            self.assertEqual(ra.api_key, 'ra_86f7e437faa5a7fce15d')
+
+
+class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
+    """ Tests methods for fetching requests """
 
     def test_cds_broadcast_flag(self):
         """ Should fetch entities without broadcast flag """
@@ -166,8 +170,21 @@ class RequestTestCase(DatastoreTestCase):
         self.assertEquals(len(r.active_revisions), 2)
         self.assertEquals(r.active_revisions[1], r.revisions[1])
 
+    def test_add_content(self):
+        r = self.request()
+        r.suggest_url(url='http://example.com/')
+        self.assertEqual(len(r.content_suggestions), 1)
+        self.assertEqual(r.content_suggestions[0].url, 'http://example.com/')
 
-class ContentTestCase(DatastoreTestCase):
+    def test_duplicate_suggestion_raises(self):
+        """ Should raise an exception on duplicate suggestion """
+        r = self.request()
+        r.suggest_url(url='http://example.com/')
+        with self.assertRaises(r.DuplicateSuggestionError) as err:
+            r.suggest_url(url='http://example.com/')
+
+
+class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
     """ Tests related to content suggestion model """
 
     def test_url_quoting(self):
