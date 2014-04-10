@@ -226,6 +226,16 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
         self.content_suggestions.append(c)
 
     @property
+    def top_suggestion(self):
+        """ Return the highest-voted content suggestion """
+        ordered = sorted(self.content_suggestions, key=lambda c: c.votes,
+                         reverse=True)
+        try:
+            return ordered[0]
+        except IndexError:
+            return None
+
+    @property
     def content(self):
         try:
             return self.revisions[self.current_revision]

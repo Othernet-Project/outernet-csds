@@ -183,6 +183,16 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         with self.assertRaises(r.DuplicateSuggestionError) as err:
             r.suggest_url(url='http://example.com/')
 
+    def test_voted_content(self):
+        """ Should return highest voted content """
+        r = self.request()
+        r.suggest_url(url='http://example.com/')
+        r.suggest_url(url='http://test.com/')
+        r.content_suggestions[0].votes = 1
+        r.content_suggestions[1].votes = 2
+        self.assertEqual(r.top_suggestion, r.content_suggestions[1])
+        r.content_suggestions[0].votes = 3
+        self.assertEqual(r.top_suggestion, r.content_suggestions[0])
 
 class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
     """ Tests related to content suggestion model """
