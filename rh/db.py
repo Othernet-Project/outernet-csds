@@ -224,6 +224,7 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
                                            'suggested' % url)
         c = Content(url=url, submitted=datetime.datetime.utcnow(), votes=0)
         self.content_suggestions.append(c)
+        self.has_suggestions = True
 
     @property
     def top_suggestion(self):

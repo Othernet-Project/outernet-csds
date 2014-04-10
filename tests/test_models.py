@@ -183,6 +183,13 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         with self.assertRaises(r.DuplicateSuggestionError) as err:
             r.suggest_url(url='http://example.com/')
 
+    def test_suggestion_sets_has_suggestion(self):
+        """ Should set has_suggestion flag when new URL is suggested """
+        r = self.request()
+        self.assertEqual(r.has_suggestions, False)
+        r.suggest_url(url='http://example.com/')
+        self.assertEqual(r.has_suggestions, True)
+
     def test_voted_content(self):
         """ Should return highest voted content """
         r = self.request()
