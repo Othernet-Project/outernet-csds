@@ -228,6 +228,7 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     @property
     def top_suggestion(self):
         """ Return the highest-voted content suggestion """
+        # FIXME: memoize this
         ordered = sorted(self.content_suggestions, key=lambda c: c.votes,
                          reverse=True)
         try:
@@ -267,6 +268,13 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
         return cls.query(
             cls.broadcast == False
         ).order(-cls.posted).fetch()
+
+    @classmethod
+    def fetch_content_pool(cls):
+        """ Fetches all top-voted content from unbroadcast requests """
+        # FIXME: Avoid calling top_suggestion twice
+        return [r.top_suggestion for r in cls.fetch_cds_requests()
+                if r.top_suggestion is not None]
 
 
 class HarvestHistory(ndb.Model):

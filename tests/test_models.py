@@ -194,6 +194,24 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         r.content_suggestions[0].votes = 3
         self.assertEqual(r.top_suggestion, r.content_suggestions[0])
 
+    def test_suggestion_pool(self):
+        """ Should return top-voted content from the unbroadcast requests """
+        r1 = self.request()
+        r2 = self.request()
+        r3 = self.request(broadcast=True)
+        for url in ['http://foo.com/', 'http://bar.com/', 'http://baz.com/']:
+            for r in [r1, r2, r3]:
+                r.suggest_url(url)
+        r1.content_suggestions[1].votes = 2
+        r2.content_suggestions[0].votes = 2
+        r3.content_suggestions[2].votes = 2
+        ndb.put_multi([r1, r2, r3])
+        pool = Request.fetch_content_pool()
+        self.assertTrue(r1.content_suggestions[1] in pool)
+        self.assertTrue(r2.content_suggestions[0] in pool)
+        self.assertFalse(r3.content_suggestions[2] in pool)
+
+
 class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
     """ Tests related to content suggestion model """
 
