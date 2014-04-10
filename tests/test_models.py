@@ -154,6 +154,18 @@ class RequestTestCase(DatastoreTestCase):
         self.assertEqual(r.text_content, 'We need content')
         self.assertEqual(r.language, 'fr')
 
+    def test_get_all_revisions_up_to_current(self):
+        """ Should return only revisions up to current """
+        r = self.request()
+        self.set_content(r)
+        r.set_content(text_content='foo')
+        r.set_content(text_content='bar')
+        self.assertEquals(len(r.active_revisions), 3)
+        self.assertEquals(r.active_revisions[2], r.revisions[2])
+        r.revert()
+        self.assertEquals(len(r.active_revisions), 2)
+        self.assertEquals(r.active_revisions[1], r.revisions[1])
+
 
 class ContentTestCase(DatastoreTestCase):
     """ Tests related to content suggestion model """

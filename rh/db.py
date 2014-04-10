@@ -206,6 +206,10 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
         except IndexError:
             return None
 
+    @property
+    def active_revisions(self):
+        return self.revisions[0:self.current_revision + 1]
+
     def get_rev(self, rev):
         return self.revisions[rev]
 
