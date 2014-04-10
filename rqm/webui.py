@@ -19,6 +19,18 @@ class WebUIProof(FormRoute):
     form_class = ProofForm
     template_name = 'rqm/proof.html'
 
+    def PATCH(self, request_id):
+        revision = self.request.form['revision']
+        try:
+            revision = int(revision)
+        except ValueError:
+            self.abort(400, 'Invalid revision number')
+        if 0 > revision > self.req.current_revision:
+            self.abort(400, 'Revision number out of bounds')
+        self.req.current_revision = revision
+        self.req.put()
+        return self.redirect()
+
     def get_form_defaults(self):
         try:
             return self.req.content.to_dict()
