@@ -33,3 +33,8 @@ class ImageDecodeError(RequestError):
 class ImageFormatError(RequestError):
     """ Raised if image file is invalid or not in supported format """
     pass
+
+
+class DuplicateSuggestionError(RequestHubError):
+    """ Raised if duplicate content suggestion is made """
+    pass

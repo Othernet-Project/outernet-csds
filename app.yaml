@@ -30,8 +30,8 @@ handlers:
   secure: always
   login: admin
 
-- url: /migrations/001
-  script: migrations.001.app
+- url: /migrations/(\d{3})
+  script: migrations.\1.app
   secure: always
   login: admin
 

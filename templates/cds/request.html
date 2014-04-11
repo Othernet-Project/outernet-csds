@@ -41,13 +41,14 @@
 </div>
 
 <h2>Content suggestions</h2>
-{% if contents %}
+{% if req.content_suggestions %}
 <ul>
-{% for content in contents %}
+{% for content in req.sorted_suggestions %}
 <li class="suggestion">
 <a href="{{ content.url }}">{{ content.url }}</a>
-{{ form_tag(action=url_for('css_webui_vote', request_id=req.key.id(), url=content.quoted_url), method='PUT', classes='inline') }}
+{{ form_tag(action=url_for('css_webui_vote', request_id=req.key.id(), url=content.quoted_url), method='PATCH', classes='inline') }}
 {{ csrf_tag }}
+{{ hidden_field('vote', value=1) }}
 {{ submit_button('Vote') }}
 </form>
 <span class="votes">{{ content.votes }} vote{% if content.votes != 1 %}s{% endif %}
