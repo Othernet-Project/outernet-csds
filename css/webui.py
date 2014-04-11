@@ -10,6 +10,8 @@ from google.appengine.ext import ndb
 from utils.routes import RedirectMixin, Route, HtmlRoute
 from werkzeug.urls import url_unquote_plus
 
+from rh.db import Request
+
 
 class WebUIVote(RedirectMixin, Route):
     """ Handler that facilitates content suggestion voting """
@@ -31,4 +33,14 @@ class WebUIVote(RedirectMixin, Route):
                 self.req.put()
                 return self.redirect()
         self.abort(404, 'No such content suggestion')
+
+
+class WebUIPool(HtmlRoute):
+    """ Return page with content pool listing """
+    name = 'css_webui_pool'
+    path = '/pool'
+    template_name = 'css/pool.html'
+
+    def get_context(self):
+        return {'pool': Request.fetch_content_pool()}
 

@@ -28,7 +28,13 @@
     await for content suggestions.</p>
 
     <p>You can see the requests that are in the system by going to the 
-    <a href="/requests/">request list page</a>.</p>
+    <a href="{{ url_for('cds_webui_list') }}">request list page</a>.</p>
+
+    <p>You can also find a <a href="{{ url_for('css_webui_pool') }}">list</a>
+    of community-suggested content URLs that belong to unbroadcast requests.
+    This list is known as 'content pool' and it is used to build daily
+    playlists. The pool is sorted by total number of votes but the sorting
+    order is subject to change in future releases.</p>
 
     <p>For each harvested request, you can make content suggestions. This is
     currently quite simple: just paste the page's address (URL) and hit
