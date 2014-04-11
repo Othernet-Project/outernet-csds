@@ -279,8 +279,9 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     def fetch_content_pool(cls):
         """ Fetches all top-voted content from unbroadcast requests """
         # FIXME: Avoid calling top_suggestion twice
-        return [r.top_suggestion for r in cls.fetch_cds_requests()
-                if r.top_suggestion is not None]
+        suggestions = [r.top_suggestion for r in cls.fetch_cds_requests()
+                       if r.top_suggestion is not None]
+        return sorted(suggestions, key=lambda s: s.votes, reverse=True)
 
 
 class HarvestHistory(ndb.Model):

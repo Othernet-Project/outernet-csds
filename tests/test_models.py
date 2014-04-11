@@ -228,6 +228,22 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         self.assertEqual(r.sorted_suggestions[0], r.content_suggestions[1])
         self.assertEqual(r.sorted_suggestions[1], r.content_suggestions[0])
 
+    def test_pool_sorted_by_votes(self):
+        """ Sorted suggestions should be sorted """
+        r1 = self.request()
+        r2 = self.request()
+        r3 = self.request(broadcast=True)
+        for url in ['http://foo.com/', 'http://bar.com/', 'http://baz.com/']:
+            for r in [r1, r2, r3]:
+                r.suggest_url(url)
+        r1.content_suggestions[1].votes = 2
+        r2.content_suggestions[0].votes = 3
+        r3.content_suggestions[2].votes = 4
+        ndb.put_multi([r1, r2, r3])
+        pool = Request.fetch_content_pool()
+        self.assertEqual(pool, [r2.content_suggestions[0],
+                                r1.content_suggestions[1]])
+
 
 class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
     """ Tests related to content suggestion model """
