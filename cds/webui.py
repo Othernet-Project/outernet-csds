@@ -47,28 +47,20 @@ class WebUIRequest(FormRoute):
     def form_valid(self):
         url = self.form.valid_data['url']
 
-        # Check URL first (and yes, that's a somewhat expensive operation, but
-        # we still do it before checking the datastore because datastore has no
-        # locking and if we take our sweet time before the read and write, the
-        # chance of a duplicate increases).
+        try:
+            self.req.suggest_url(url)
+        except self.req.DuplicateSuggestionError:
+            self.form.errors['url'] = ('This page has already been '
+                'suggested.')
+            return self.form_invalid()
+
         try:
             urllib2.urlopen(url, timeout=10)
         except urllib2.HTTPError:
             self.form.errors['url'] = ('This URL could not be opened.')
             return self.form_invalid()
 
-        key = ndb.Key('Request', self.req.key.id(), 'Content', url)
-        if key.get():
-            self.form.errors['url'] = ('This page has already been '
-                'suggested.')
-            return self.form_invalid()
-        self.req.has_suggestions = True
-        # FIXME: Having a request as parent may sound like a good idea, but
-        # it's probably bad for the voting system. We should either move votes
-        # into a separate entity group and not even cache it in the
-        # request-contents group, or make contents a separate group.
-        content = Content(url=url, parent=self.req.key, id=url)
-        ndb.put_multi([self.req, content])
+        self.req.put()
         return super(WebUIRequest, self).form_valid()
 
     def get_context(self):
