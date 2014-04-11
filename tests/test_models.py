@@ -218,6 +218,16 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         self.assertTrue(r2.content_suggestions[0] in pool)
         self.assertFalse(r3.content_suggestions[2] in pool)
 
+    def test_sorted_suggestions(self):
+        """ Should return sorted content suggestions """
+        r = self.request()
+        r.suggest_url('http://foo.com')
+        r.suggest_url('http://bar.com')
+        r.content_suggestions[0].votes = 1
+        r.content_suggestions[1].votes = 2
+        self.assertEqual(r.sorted_suggestions[0], r.content_suggestions[1])
+        self.assertEqual(r.sorted_suggestions[1], r.content_suggestions[0])
+
 
 class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
     """ Tests related to content suggestion model """

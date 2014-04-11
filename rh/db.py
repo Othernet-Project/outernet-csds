@@ -238,6 +238,11 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
             return None
 
     @property
+    def sorted_suggestions(self):
+        return sorted(self.content_suggestions, key=lambda c: c.votes,
+                      reverse=True)
+
+    @property
     def content(self):
         try:
             return self.revisions[self.current_revision]
