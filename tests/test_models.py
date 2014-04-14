@@ -341,3 +341,17 @@ class PlaylistTestcase(RequestFactoryMixin, DatastoreTestCase):
         p2 = Playlist.get_current()
         self.assertEqual(p1, p2)
 
+    @patch('rh.db.Playlist.get_current_timestamp')
+    def test_add_to_playlist_sets_broadcast_flag(self, gct):
+        """ Should set broadcast flag on added requests """
+        gct.return_value = (datetime.date(2014, 4, 5), '20140405')
+        r = self.request(broadcast=False)
+        r.suggest_url('http://test.com/')
+        Playlist.add_to_playlist(r)
+        self.assertTrue(r.broadcast)
+
+    def test_cannot_add_broadcast_requests(self):
+        """ Should not do anything when request has a broadcast flag """
+        r = self.request(broadcast=True)
+        Playlist.add_to_playlist(r)
+        self.assertFalse(r in Playlist.get_current().content)
