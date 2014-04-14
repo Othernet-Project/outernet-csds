@@ -22,7 +22,7 @@ from .exceptions import DuplicateSuggestionError
 ADAPTOR_KEY_PREFIX = 'ra'
 
 __all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content',
-           'HarvestHistory')
+           'HarvestHistory', 'PlaylistItem', 'Playlist')
 
 
 class RequestConstants(object):
@@ -279,9 +279,13 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     def fetch_content_pool(cls):
         """ Fetches all top-voted content from unbroadcast requests """
         # FIXME: Avoid calling top_suggestion twice
-        suggestions = [r.top_suggestion for r in cls.fetch_cds_requests()
-                       if r.top_suggestion is not None]
-        return sorted(suggestions, key=lambda s: s.votes, reverse=True)
+        requests_with_content = []
+        for r in cls.fetch_cds_requests():
+            t = r.top_suggestion
+            if t:
+                requests_with_content.append(r)
+        return sorted(requests_with_content,
+                      key=lambda s: s.top_suggestion.votes, reverse=True)
 
 
 class HarvestHistory(ndb.Model):
@@ -308,3 +312,36 @@ class HarvestHistory(ndb.Model):
     def get_key(adaptor):
         return ndb.Key('HarvestHistory', adaptor.name)
 
+
+class PlaylistItem(ndb.Model):
+    """ Model to persist a single playlist item, used as repeated property """
+    url = ndb.StringProperty()
+    request = ndb.KeyProperty('Request')
+
+
+class Playlist(ndb.Model):
+    """ Daily playlist """
+    date = ndb.DateProperty()
+    content = ndb.StructuredProperty(PlaylistItem, repeated=True)
+
+    @staticmethod
+    def get_current_timestamp():
+        d = datetime.datetime.utcnow()
+        return d.date(), d.strftime('%Y%m%d')
+
+    @classmethod
+    def add_to_playlist(cls, request):
+        """ Creates or updates a playlist with a request """
+        playlist = cls.get_current()
+        playlist.content.append(PlaylistItem(url=request.top_suggestion.url,
+                                             request=request.key))
+        playlist.put()
+
+    @classmethod
+    def get_current(cls):
+        """ Return playlist object for current timestamp """
+        date, ts = cls.get_current_timestamp()
+        playlist = ndb.Key('Playlist', ts).get()
+        if playlist is None:
+            playlist = Playlist(id=ts, date=date)
+        return playlist

@@ -10,7 +10,7 @@ from google.appengine.ext import ndb
 from utils.routes import RedirectMixin, Route, HtmlRoute
 from werkzeug.urls import url_unquote_plus
 
-from rh.db import Request
+from rh.db import Request, Playlist
 
 
 class WebUIVote(RedirectMixin, Route):
@@ -44,3 +44,25 @@ class WebUIPool(HtmlRoute):
     def get_context(self):
         return {'pool': Request.fetch_content_pool()}
 
+
+class WebUIPlaylist(RedirectMixin, HtmlRoute):
+    """ Add a request's top suggestion to the playlist """
+    name = 'css_webui_playlist'
+    path = '/playlist'
+    template_name = 'css/playlist.html'
+
+    def get_context(self):
+        return {'playlist': Playlist.get_current()}
+
+    def get_redirect_url(self):
+        return self.request.path
+
+    def PUT(self):
+        self.req = ndb.Key('Request',
+                           int(self.request.form['request_id'])).get()
+        if not self.req:
+            self.abort(400, 'No request matching the content URL')
+        if not self.req.top_suggestion:
+            self.abort(400, 'This request is not a candidate for playlist')
+        Playlist.add_to_playlist(self.req)
+        return self.redirect()
