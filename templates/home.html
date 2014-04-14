@@ -19,13 +19,24 @@
     is quite important, possibly more so now than later. We thank you in advance
     for taking part in developing Outernet.</p>
 
-    <h2>How? What? Where?</h2>
+    <h2>Submitting content requests to CSDS</h2>
 
-    <p>Currently, the only means of submitting requests is via the Outernet's
-    <a href="https://www.facebook.com/OuternetForAll">Facebook page</a>. Anything
-    posted on this page is treated as a request for content and will be harvested
-    every 30 minutes by our server. The harvested requests are put in a queue, and
-    await for content suggestions.</p>
+    <p>Currently, the only means of submitting requests are via the Outernet's
+    <a href="https://www.facebook.com/OuternetForAll">Facebook page</a> and via 
+    email using the 
+    <a href="mailto:request@csds.outernet.is">request@csds.outernet.is</a> 
+    address.</p>
+    
+    <p>Anything posted on the Facebook page is treated as a request for content 
+    and will be harvested every 3 hours by our server. The harvested 
+    requests are put in a queue, and  await for content suggestions.</p>
+
+    <p>Similarly, every email message is treated as a content request. The 
+    messages are currently not sanitized, and only the plain-text portion of 
+    the email is used (HTML-only emails won't work). Subject and sender address 
+    are also ignored.</p>
+
+    <h2>Request queue, content suggestions, voting, and playlists</h2>
 
     <p>You can see the requests that are in the system by going to the 
     <a href="{{ url_for('cds_webui_list') }}">request list page</a>.</p>
