@@ -214,9 +214,7 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         r3.content_suggestions[2].votes = 2
         ndb.put_multi([r1, r2, r3])
         pool = Request.fetch_content_pool()
-        self.assertTrue(r1.content_suggestions[1] in pool)
-        self.assertTrue(r2.content_suggestions[0] in pool)
-        self.assertFalse(r3.content_suggestions[2] in pool)
+        self.assertEqual(pool, [r1, r2])
 
     def test_sorted_suggestions(self):
         """ Should return sorted content suggestions """
@@ -241,8 +239,7 @@ class RequestTestCase(RequestFactoryMixin, DatastoreTestCase):
         r3.content_suggestions[2].votes = 4
         ndb.put_multi([r1, r2, r3])
         pool = Request.fetch_content_pool()
-        self.assertEqual(pool, [r2.content_suggestions[0],
-                                r1.content_suggestions[1]])
+        self.assertEqual(pool, [r2, r1])
 
 
 class ContentTestCase(RequestFactoryMixin, DatastoreTestCase):
@@ -294,5 +291,38 @@ class HarvestHistoryTestCase(DatastoreTestCase):
         now.return_value = datetime.datetime(2014, 4, 1)
         t = HarvestHistory.get_timestamp(self.adaptor('baz'))
         self.assertEqual(t, datetime.datetime.utcfromtimestamp(0))
+
+
+class PlaylistTestcase(RequestFactoryMixin, DatastoreTestCase):
+    """ Tests related to Playlist model """
+
+    def test_get_timestamp(self):
+        """ Should return a tuple of date and str instances """
+        date, timestamp = Playlist.get_current_timestamp()
+        self.assertTrue(isinstance(date, datetime.date))
+        self.assertTrue(isinstance(timestamp, str))
+
+    @patch('rh.db.Playlist.get_current_timestamp')
+    def test_add_to_new_playlist(self, gct):
+        gct.return_value = (datetime.date(2014, 4, 1), '20140401')
+        r = self.request()
+        r.suggest_url('http://test.com/')
+        r.put()
+        Playlist.add_to_playlist(r)
+        p = Playlist.get_by_id('20140401')
+        self.assertEqual(p.content[0].url, 'http://test.com/')
+        self.assertEqual(p.content[0].request, r.key)
+
+    @patch('rh.db.Playlist.get_current_timestamp')
+    def test_add_to_existing_playlist(self, gct):
+        gct.return_value = (datetime.date(2014, 4, 2), '20140402')
+        p = Playlist(id='20140402', date=datetime.date(2014, 4, 2))
+        p.put()
+        r = self.request()
+        r.suggest_url('http://test.com/')
+        r.put()
+        Playlist.add_to_playlist(r)
+        p = p.key.get()
+        self.assertEqual(p.content[0].url, 'http://test.com/')
 
 
