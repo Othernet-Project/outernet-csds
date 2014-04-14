@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Playlist for {{ playlist.date.strftime('%Y-%m-%d') }}{% endblock %}
+
+{% block content %}
+<h2>Playlist for {{ playlist.date.strftime('%Y-%m-%d') }}</h2>
+
+<ul>
+{% for content in playlist.content %}
+<li>
+<a href="{{ content.url }}">{{ content.url }}</a>
+(for request <a href="{{ url_for('cds_webui_request', request_id=content.request.id()) }}">#{{ content.request.id() }}</a>)
+</li>
+{% else %}
+<li>This playlist is empty</li>
+{% endfor %}
+{% endblock %}
