@@ -325,4 +325,19 @@ class PlaylistTestcase(RequestFactoryMixin, DatastoreTestCase):
         p = p.key.get()
         self.assertEqual(p.content[0].url, 'http://test.com/')
 
+    @patch('rh.db.Playlist.get_current_timestamp')
+    def test_get_current_playlist(self, gct):
+        """ Should return a playlist for today's date """
+        gct.return_value = (datetime.date(2014, 4, 3), '20140403')
+        p = Playlist.get_current()
+        self.assertEqual(p.date, datetime.date(2014, 4, 3))
+        self.assertEqual(p.key.id(), '20140403')
+
+    @patch('rh.db.Playlist.get_current_timestamp')
+    def test_get_current_existing(self, gct):
+        gct.return_value = (datetime.date(2014, 4, 4), '20140404')
+        p1 = Playlist(date=datetime.date(2014, 4, 4), id='20140404')
+        p1.put()
+        p2 = Playlist.get_current()
+        self.assertEqual(p1, p2)
 

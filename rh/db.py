@@ -332,10 +332,16 @@ class Playlist(ndb.Model):
     @classmethod
     def add_to_playlist(cls, request):
         """ Creates or updates a playlist with a request """
+        playlist = cls.get_current()
+        playlist.content.append(PlaylistItem(url=request.top_suggestion.url,
+                                             request=request.key))
+        playlist.put()
+
+    @classmethod
+    def get_current(cls):
+        """ Return playlist object for current timestamp """
         date, ts = cls.get_current_timestamp()
         playlist = ndb.Key('Playlist', ts).get()
         if playlist is None:
             playlist = Playlist(id=ts, date=date)
-        playlist.content.append(PlaylistItem(url=request.top_suggestion.url,
-                                             request=request.key))
-        playlist.put()
+        return playlist
