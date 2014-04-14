@@ -332,10 +332,13 @@ class Playlist(ndb.Model):
     @classmethod
     def add_to_playlist(cls, request):
         """ Creates or updates a playlist with a request """
+        if request.broadcast:
+            return
         playlist = cls.get_current()
         playlist.content.append(PlaylistItem(url=request.top_suggestion.url,
                                              request=request.key))
-        playlist.put()
+        request.broadcast = True
+        ndb.put_multi([playlist, request])
 
     @classmethod
     def get_current(cls):
