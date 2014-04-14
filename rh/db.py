@@ -17,11 +17,12 @@ import babel
 
 from .keys import generate_api_key
 from .properties import LanguageProperty
+from .exceptions import DuplicateSuggestionError
 
 ADAPTOR_KEY_PREFIX = 'ra'
 
 __all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content',
-           'HarvestHistory')
+           'HarvestHistory', 'PlaylistItem', 'Playlist')
 
 
 class RequestConstants(object):
@@ -132,8 +133,22 @@ class Revision(LocaleMixin, ndb.Model):
     topic = ndb.StringProperty(choices=RequestConstants.TOPICS)
 
 
+class Content(ndb.Model):
+    """ Model to persist content suggestions """
+
+    url = ndb.StringProperty()
+    submitted = ndb.DateTimeProperty()
+    votes = ndb.IntegerProperty()
+
+    @property
+    def quoted_url(self):
+        return url_quote_plus(self.url)
+
+
 class Request(LocaleMixin, RequestConstants, ndb.Model):
     """ Model for persisting requests """
+
+    DuplicateSuggestionError = DuplicateSuggestionError
 
     # Adaptor information
     adaptor_name = ndb.StringProperty(required=True)
@@ -171,6 +186,9 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     current_revision = ndb.IntegerProperty()
     revisions = ndb.StructuredProperty(Revision, repeated=True)
 
+    # Content suggestions
+    content_suggestions = ndb.StructuredProperty(Content, repeated=True)
+
     def _rev_field(self, field_name, rev=None):
         try:
             rev = self.revisions[rev or self.current_revision or 0]
@@ -199,12 +217,41 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
         else:
             self.current_revision = len(self.revisions) - 1
 
+    def suggest_url(self, url):
+        """ Add url to content suggestions """
+        if url in [c.url for c in self.content_suggestions]:
+            raise DuplicateSuggestionError('%s has already been '
+                                           'suggested' % url)
+        c = Content(url=url, submitted=datetime.datetime.utcnow(), votes=0)
+        self.content_suggestions.append(c)
+        self.has_suggestions = True
+
+    @property
+    def top_suggestion(self):
+        """ Return the highest-voted content suggestion """
+        # FIXME: memoize this
+        ordered = sorted(self.content_suggestions, key=lambda c: c.votes,
+                         reverse=True)
+        try:
+            return ordered[0]
+        except IndexError:
+            return None
+
+    @property
+    def sorted_suggestions(self):
+        return sorted(self.content_suggestions, key=lambda c: c.votes,
+                      reverse=True)
+
     @property
     def content(self):
         try:
             return self.revisions[self.current_revision]
         except IndexError:
             return None
+
+    @property
+    def active_revisions(self):
+        return self.revisions[0:self.current_revision + 1]
 
     def get_rev(self, rev):
         return self.revisions[rev]
@@ -228,17 +275,17 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
             cls.broadcast == False
         ).order(-cls.posted).fetch()
 
-
-class Content(ndb.Model):
-    """ Model to persist content suggestions """
-
-    url = ndb.StringProperty(required=True)
-    submitted = ndb.DateTimeProperty(auto_now_add=True)
-    votes = ndb.IntegerProperty(default=0)
-
-    @property
-    def quoted_url(self):
-        return url_quote_plus(self.url)
+    @classmethod
+    def fetch_content_pool(cls):
+        """ Fetches all top-voted content from unbroadcast requests """
+        # FIXME: Avoid calling top_suggestion twice
+        requests_with_content = []
+        for r in cls.fetch_cds_requests():
+            t = r.top_suggestion
+            if t:
+                requests_with_content.append(r)
+        return sorted(requests_with_content,
+                      key=lambda s: s.top_suggestion.votes, reverse=True)
 
 
 class HarvestHistory(ndb.Model):
@@ -265,3 +312,39 @@ class HarvestHistory(ndb.Model):
     def get_key(adaptor):
         return ndb.Key('HarvestHistory', adaptor.name)
 
+
+class PlaylistItem(ndb.Model):
+    """ Model to persist a single playlist item, used as repeated property """
+    url = ndb.StringProperty()
+    request = ndb.KeyProperty('Request')
+
+
+class Playlist(ndb.Model):
+    """ Daily playlist """
+    date = ndb.DateProperty()
+    content = ndb.StructuredProperty(PlaylistItem, repeated=True)
+
+    @staticmethod
+    def get_current_timestamp():
+        d = datetime.datetime.utcnow()
+        return d.date(), d.strftime('%Y%m%d')
+
+    @classmethod
+    def add_to_playlist(cls, request):
+        """ Creates or updates a playlist with a request """
+        if request.broadcast:
+            return
+        playlist = cls.get_current()
+        playlist.content.append(PlaylistItem(url=request.top_suggestion.url,
+                                             request=request.key))
+        request.broadcast = True
+        ndb.put_multi([playlist, request])
+
+    @classmethod
+    def get_current(cls):
+        """ Return playlist object for current timestamp """
+        date, ts = cls.get_current_timestamp()
+        playlist = ndb.Key('Playlist', ts).get()
+        if playlist is None:
+            playlist = Playlist(id=ts, date=date)
+        return playlist

@@ -12,6 +12,10 @@ class AdaptorsSettings(object):
     OFB_APP_ID = '$FB_APP_ID'
     OFB_APP_SECRET = '$FB_APP_SECRET'
     OFB_PAGE_ID = '208511276012855'  # https://www.facebook.com/OuternetForAll
+    EML_API_ID = '$EML_UNAME'
+    EML_API_KEY = '$EML_KEY'
+    EML_API_SIGNATURE = '$EML_SIGN'
+    EML_ADDRESS = 'request@csds.outernet.is'
 
 
 class Base(AdaptorsSettings, object):

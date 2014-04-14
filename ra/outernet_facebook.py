@@ -79,6 +79,7 @@ class OuternetFacebookAdaptor(Adaptor):
 
 class OuternetFacebookCronJob(CronJobHandlerMixin, Route):
     """ Outernet Facebook adaptor quarter-daily harvest cron job """
+    name = 'rh_harvest_facebook'
     path = '/rh/harvests/facebook'
     adaptor_class = OuternetFacebookAdaptor
 

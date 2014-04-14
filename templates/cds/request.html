@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'utils/macros.html' import form_tag, submit_button %}
+{% from 'utils/macros.html' import form_tag, submit_button, hidden_field %}
 
 {% block title %}Request #{{ req.key.id() }}{% endblock %}
 
@@ -17,27 +17,38 @@
 {% endmacro %}
 
 {% block content %}
-<p class="nav">
+<div class="nav">
 <a href="{{ url_for('cds_webui_list') }}">All requests</a>
 <a href="{{ url_for('rqm_webui_proof', request_id=req.key.id()) }}">Help clarify this request</a>
 {% if rev != None %}
 <a href="{{ url_for('cds_webui_request', request_id=req.key.id()) }}">Show current version</a>
 {% endif %}
-</p>
+</div>
 
 <div class="request">
-    <p class="request-timestamp">{{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }} <strong>{% if rev %}(showing community edit #{{ rev }}){% elif rev == 0 %}(showing original version){% endif %}</strong></p>
+    <div class="request-timestamp">
+    {{ req.posted.strftime('%Y-%m-%d') }} via {{ req.adaptor_source }} 
+    <strong>{% if rev %}(showing community edit #{{ rev }}){% elif rev == 0 %}(showing original version){% endif %}</strong>
+    {% if rev != None %}
+    {{ form_tag(url_for('rqm_webui_proof', request_id=req.key.id()), method='PATCH', classes='inline') }}
+        {{ csrf_tag }}
+        {{ hidden_field('revision', rev) }}
+        {{ submit_button('Revert to this version') }}
+    </form>
+    {% endif %}
+    </div>
     {{ details(content) }}
 </div>
 
 <h2>Content suggestions</h2>
-{% if contents %}
+{% if req.content_suggestions %}
 <ul>
-{% for content in contents %}
+{% for content in req.sorted_suggestions %}
 <li class="suggestion">
 <a href="{{ content.url }}">{{ content.url }}</a>
-{{ form_tag(action=url_for('css_webui_vote', request_id=req.key.id(), url=content.quoted_url), method='PUT', classes='inline') }}
+{{ form_tag(action=url_for('css_webui_vote', request_id=req.key.id(), url=content.quoted_url), method='PATCH', classes='inline') }}
 {{ csrf_tag }}
+{{ hidden_field('vote', value=1) }}
 {{ submit_button('Vote') }}
 </form>
 <span class="votes">{{ content.votes }} vote{% if content.votes != 1 %}s{% endif %}
@@ -56,7 +67,7 @@
 {% if req.current_revision > 0 %}
 <h2>Community edits</h2>
 <ul class="request-revisions">
-    {% for revision in req.revisions %}
+    {% for revision in req.active_revisions %}
     <li>
     {% if loop.index == 1 %}
     original:

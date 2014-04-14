@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% from 'utils/macros.html' import form_tag, hidden_field, submit_button %}
+
+{% block title %}Content pool{% endblock %}
+
+{% block content %}
+<div class="read">
+    <h2>Content pool</h2>
+
+    <p>
+    This page represents the list of content suggestions in the database which 
+    would be used to build the daily playlist.
+    </p>
+
+    <ul>
+    {% for req in pool %}
+    {% set content = req.top_suggestion %}
+    <li>
+    <a href="{{ content.url }}">{{ content.url }}</a> 
+    ({{ content.votes }} vote{% if content.votes != 1 %}s{% endif %})
+    {{ form_tag(url_for('css_webui_playlist'), method='PUT', classes='inline') }}
+        {{ csrf_tag }}
+        {{ hidden_field('request_id', req.key.id()) }}
+        {{ submit_button("Add to playlist") }}
+    </form>
+    </li>
+    {% else %}
+    <li>There are no content suggestions</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

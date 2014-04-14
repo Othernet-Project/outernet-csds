@@ -19,16 +19,33 @@
     is quite important, possibly more so now than later. We thank you in advance
     for taking part in developing Outernet.</p>
 
-    <h2>How? What? Where?</h2>
+    <h2>Submitting content requests to CSDS</h2>
 
-    <p>Currently, the only means of submitting requests is via the Outernet's
-    <a href="https://www.facebook.com/OuternetForAll">Facebook page</a>. Anything
-    posted on this page is treated as a request for content and will be harvested
-    every 30 minutes by our server. The harvested requests are put in a queue, and
-    await for content suggestions.</p>
+    <p>Currently, the only means of submitting requests are via the Outernet's
+    <a href="https://www.facebook.com/OuternetForAll">Facebook page</a> and via 
+    email using the 
+    <a href="mailto:request@csds.outernet.is">request@csds.outernet.is</a> 
+    address.</p>
+    
+    <p>Anything posted on the Facebook page is treated as a request for content 
+    and will be harvested every 3 hours by our server. The harvested 
+    requests are put in a queue, and  await for content suggestions.</p>
+
+    <p>Similarly, every email message is treated as a content request. The 
+    messages are currently not sanitized, and only the plain-text portion of 
+    the email is used (HTML-only emails won't work). Subject and sender address 
+    are also ignored.</p>
+
+    <h2>Request queue, content suggestions, voting, and playlists</h2>
 
     <p>You can see the requests that are in the system by going to the 
-    <a href="/requests/">request list page</a>.</p>
+    <a href="{{ url_for('cds_webui_list') }}">request list page</a>.</p>
+
+    <p>You can also find a <a href="{{ url_for('css_webui_pool') }}">list</a>
+    of community-suggested content URLs that belong to unbroadcast requests.
+    This list is known as 'content pool' and it is used to build daily
+    playlists. The pool is sorted by total number of votes but the sorting
+    order is subject to change in future releases.</p>
 
     <p>For each harvested request, you can make content suggestions. This is
     currently quite simple: just paste the page's address (URL) and hit
@@ -36,6 +53,14 @@
     duplicate URLs are not accepted.</p>
 
     <p>You can also vote on suggested content.</p>
+
+    <p>Each day, a playlist is built from the suggested content. This will 
+    eventually be done completely automatically with occasional manual 
+    intervention from volunteers. The playlist items are selected from the 
+    <a href="{{ url_for('css_webui_pool') }}">content pool</a>, and this is 
+    currently exposed as a completely manual UI. The current state of the 
+    today's playlist can be seen on the 
+    <a href="{{ url_for('css_webui_playlist') }}">playlist page</a>.</p>
 
     <h2>No user accoutns</h2>
 
@@ -51,5 +76,13 @@
     <a href="https://github.com/Outernet-Project/outernet-csds">available on GitHub</a> 
     under <a href="https://www.gnu.org/copyleft/gpl.html">GPLv3</a> license.
     </p>
+</div>
+
+<div class="homenav">
+    <a href="{{ url_for('cds_webui_list') }}">Reqeusts</a>
+    <a href="{{ url_for('css_webui_playlist') }}">Current playlist</a>
+    <a href="{{ url_for('css_webui_pool') }}">Content pool</a>
+    <a href="https://discuss.outernet.is/">Discussions</a>
+    <a href="https://www.outernet.is/">Project homepage</a>
 </div>
 {% endblock %}

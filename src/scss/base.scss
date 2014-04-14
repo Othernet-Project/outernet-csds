@@ -186,3 +186,25 @@ form.vertical {
     line-height: 130%;
   }
 }
+
+.homenav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: transparentize(#eee, 0.2);
+  border-bottom: 1px solid #ddd;
+
+  a {
+    font-size: 90%;
+    display: inline-block;
+    text-decoration: none;
+    padding: 1em;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid transparent;
+
+    &:hover {
+      border-bottom: 1px solid #555;
+    }
+  }
+}
