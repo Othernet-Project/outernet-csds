@@ -28,11 +28,6 @@ __all__ = ('RemoteAdaptor', 'Request', 'RequestConstants', 'Content',
 class RequestConstants(object):
     """ Holds constants shared between request-related classes """
 
-    # Request worlds
-    ONLINE = 1
-    OFFLINE = 0
-    WORLDS = [ONLINE, OFFLINE]
-
     # Request types
     TRANSCRIBED = 1
     NONTRANSCRIBED = 0
@@ -170,9 +165,6 @@ class Request(LocaleMixin, RequestConstants, ndb.Model):
     # Broadcast information (derived from revision)
     language = ndb.ComputedProperty(lambda s: s._rev_field('language'))
     topic = ndb.ComputedProperty(lambda s: s._rev_field('topic'))
-
-    # Metadata
-    world = ndb.IntegerProperty(choices=RequestConstants.WORLDS)
 
     # Timestamps
     posted = ndb.DateTimeProperty(required=True)
