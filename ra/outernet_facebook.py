@@ -69,12 +69,6 @@ class OuternetFacebookAdaptor(Adaptor):
                  'AND created_time >= %s' % (page_id, timestamp))
         return graph.fql(query)
 
-    def get_location(self, page_id):
-        """ Obtain current location of the specified profile (user) """
-        graph = facebook.GraphAPI('%s|%s' % (self.app_id, self.app_secret))
-        query = 'SELECT current_location FROM user WHERE uid = %s' % page_id
-        return graph.fql(query)
-
 
 class OuternetFacebookCronJob(CronJobHandlerMixin, Route):
     """ Outernet Facebook adaptor quarter-daily harvest cron job """
