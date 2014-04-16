@@ -55,7 +55,6 @@ class OuternetFacebookAdaptor(Adaptor):
                 timestamp=datetime.datetime.fromtimestamp(
                     int(post['created_time'])),
                 content_format=Request.TEXT,
-                world=Request.ONLINE,
             ))
         return requests
 

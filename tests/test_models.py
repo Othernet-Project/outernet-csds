@@ -20,7 +20,6 @@ class RequestFactoryMixin(object):
                 adaptor_trusted=False,
                 content_type=RequestConstants.TRANSCRIBED,
                 content_format=RequestConstants.TEXT,
-                world=RequestConstants.OFFLINE,
                 posted=datetime.datetime(2014, 4, 1),
                 processed=datetime.datetime(2014, 4, 1),
                 broadcast=False):

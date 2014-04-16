@@ -36,11 +36,11 @@ class RequestTestMixin(object):
         return a
 
     def request(self, adaptor=None, content='test', timestamp=None,
-                world=Request.ONLINE, content_format=Request.TEXT, **kwargs):
+                content_format=Request.TEXT, **kwargs):
         """ Build test request object """
         adaptor = adaptor or self.adaptor()
         timestamp = timestamp or TEST_TIMESTAMP
-        return Request(adaptor, content, timestamp, world, content_format,
+        return Request(adaptor, content, timestamp, content_format,
                        **kwargs)
 
 
@@ -129,10 +129,6 @@ class RequestObjectTestCase(RequestTestMixin, unittest.TestCase):
         r = self.request(content=TEST_TIFF_B64, content_format='image/png')
         self.assertImageInvalid(r, 'Image format -4 not supported')
 
-    def test_check_world(self):
-        r = self.request(world=2)
-        self.assertMetaInvalid(r, 'Invalid world')
-
     @patch('rh.requests.Request.check_adaptor')
     @patch('rh.requests.Request.check_timestamp')
     @patch('rh.requests.Request.check_content_format')
@@ -188,7 +184,7 @@ class RequestPersistTestCase(RequestTestMixin, DatastoreTestCase):
         r1 = RequestModel.query().get()
         for prop in ['adaptor_name', 'adaptor_source', 'adaptor_trusted',
                      'content_type', 'content_format', 'content_language',
-                     'world', 'language', 'topic', 'posted']:
+                     'language', 'topic', 'posted']:
             self.assertEqual(getattr(r, prop), getattr(r1, prop))
 
     def test_persist_error(self):

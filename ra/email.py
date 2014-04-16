@@ -70,7 +70,6 @@ class OuternetEmailAdaptor(Adaptor):
                 content=body,
                 timestamp=datetime.datetime.fromtimestamp(timestamp),
                 content_format=Request.TEXT,
-                world=Request.ONLINE
             ))
         return requests
 

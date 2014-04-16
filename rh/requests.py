@@ -44,7 +44,7 @@ class Request(RequestConstants):
     ImageDecodeError = ImageDecodeError
     ImageFormatError = ImageFormatError
 
-    def __init__(self, adaptor, content, timestamp, world, content_format,
+    def __init__(self, adaptor, content, timestamp, content_format,
                  language=None, content_language=None, topic=None,
                  location=None):
 
@@ -60,7 +60,6 @@ class Request(RequestConstants):
         # Request content information
         self.raw_content = content
         self.processed_content = None
-        self.world = world
         self.content_format = content_format
         self.content_type = self.CONTENT_TYPES.get(self.content_format)
         self.content_language = content_language
@@ -119,8 +118,6 @@ class Request(RequestConstants):
 
     def check_request_meta(self):
         """ Check miscellanous request information """
-        if not self.world in self.WORLDS:
-            raise RequestDataError('Invalid world')
 
     def check(self):
         """ Check request data and raise exception if invalid """
@@ -141,7 +138,6 @@ class Request(RequestConstants):
             adaptor_trusted=self.adaptor_trusted,
             content_type=self.content_type,
             content_format=self.content_format,
-            world=self.world,
             posted=self.posted,
             processed=self.processed,
         )
