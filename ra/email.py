@@ -16,6 +16,7 @@ import collections
 import base64
 import hmac
 from hashlib import sha1
+import re
 
 from google.appengine.ext import ndb
 from flask import current_app as app
@@ -38,6 +39,12 @@ class OuternetEmailAdaptor(Adaptor):
     source = 'request@csds.outernet.is'
     contact = 'hello@outernet.com'
     trusted = True
+
+    # Lines that signfiy beginnings for signatures
+    SIG_LINES = (
+        re.compile(r'\s*---*\s*$', re.M), # Classic -- sig
+        re.compile(r'\s*Sent from [a-zA-Z ]*\s*$', re.M), # iPhone and similar
+    )
 
     def __init__(self, data):
         self.api_id = app.config['EML_API_ID']
@@ -64,7 +71,7 @@ class OuternetEmailAdaptor(Adaptor):
             # message may be HTML-only, although we assume this is rare. This case
             # should be checked and HTML message extracted and converted to text.
             # The HTML message is stored in ``message['html']``.
-            body = d['msg']['text']
+            body = self.strip_sig(d['msg']['text'])
             requests.append(Request(
                 adaptor=self,
                 content=body,
@@ -73,6 +80,20 @@ class OuternetEmailAdaptor(Adaptor):
                 world=Request.ONLINE
             ))
         return requests
+
+    def strip_sig(self, msg):
+        """ Strip signature from plain-text emails
+
+        This is a (currently) very crude method for stripping signatures. It
+        basically strips out any text below and including two or more dashes.
+
+        It also strips lines below 'Sent from' followed by any number of
+        letters and spaces, including the line.
+
+        """
+        for s in self.SIG_LINES:
+            msg = ''.join(s.split(msg)[0:-1])
+        return msg
 
 
 class EmailHook(Route):
