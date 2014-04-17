@@ -19,6 +19,8 @@ from utils.routes import Route
 from rh.adaptors import Adaptor, CronJobHandlerMixin
 from rh.requests import Request
 
+__all__ = ('OuternetFacebookAdaptor', 'OuternetFacebookCronJob')
+
 
 class OuternetFacebookAdaptor(Adaptor):
     """ Outernet Facebook Page Adaptor
@@ -41,24 +43,26 @@ class OuternetFacebookAdaptor(Adaptor):
 
     def get_requests(self, last_access):
         """ Collect messages from the Facebook page and return the list """
-        data = self.get_posts(self.page_id, last_access)
+        data = self.get_posts(last_access)
         requests = []
-        print(data)
         for post in data:
-            if not post['message']:
-                continue
-            # TODO: First check if post is an image and do things differently
-            # for them.
-            requests.append(Request(
-                adaptor=self,
-                content=post['message'],
-                timestamp=datetime.datetime.fromtimestamp(
-                    int(post['created_time'])),
-                content_format=Request.TEXT,
-            ))
+            r = self.process_post(post)
+            if r is not None:
+                requests.append(r)
         return requests
 
-    def get_posts(self, page_id, last_access):
+    def process_post(self, post):
+        if not post['message']:
+            return
+        return Request(
+            adaptor=self,
+            content=post['message'],
+            timestamp=datetime.datetime.fromtimestamp(
+                int(post['created_time'])),
+            content_format=Request.TEXT,
+        )
+
+    def get_posts(self, last_access):
         """ Obtain all posts made by other users on a wall """
         access_token = facebook.get_app_access_token(self.app_id,
                                                      self.app_secret)
@@ -66,13 +70,7 @@ class OuternetFacebookAdaptor(Adaptor):
         graph = facebook.GraphAPI(access_token)
         query = ('SELECT actor_id, message, created_time FROM stream '
                  'WHERE type < 0 AND source_id=%s '
-                 'AND created_time >= %s' % (page_id, timestamp))
-        return graph.fql(query)
-
-    def get_location(self, page_id):
-        """ Obtain current location of the specified profile (user) """
-        graph = facebook.GraphAPI('%s|%s' % (self.app_id, self.app_secret))
-        query = 'SELECT current_location FROM user WHERE uid = %s' % page_id
+                 'AND created_time >= %s' % (self.page_id, timestamp))
         return graph.fql(query)
 
 
