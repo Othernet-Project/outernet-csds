@@ -27,6 +27,9 @@ from rh.requests import Request
 from rh.db import HarvestHistory
 
 
+__all__ = ('OuternetEmailAdaptor', 'EmailHook')
+
+
 class OuternetEmailAdaptor(Adaptor):
     """ Outernet Email Adaptor
 
@@ -66,19 +69,23 @@ class OuternetEmailAdaptor(Adaptor):
         # More about the inbound hook format: http://bit.ly/1kpcYlt
         requests = []
         for d in self.data:
-            timestamp = d['ts']
-            # TODO: We currently only handle text portion of the message body. The
-            # message may be HTML-only, although we assume this is rare. This case
-            # should be checked and HTML message extracted and converted to text.
-            # The HTML message is stored in ``message['html']``.
-            body = self.strip_sig(d['msg']['text'])
-            requests.append(Request(
-                adaptor=self,
-                content=body,
-                timestamp=datetime.datetime.fromtimestamp(timestamp),
-                content_format=Request.TEXT,
-            ))
+            requests.append(self.process_message(d))
         return requests
+
+    def process_message(self, msg):
+        """ Process a single message """
+        timestamp = msg['ts']
+        # TODO: We currently only handle text portion of the message body. The
+        # message may be HTML-only, although we assume this is rare. This case
+        # should be checked and HTML message extracted and converted to text.
+        # The HTML message is stored in ``msg['msg']['html']``.
+        body = msg['msg']['text']
+        return Request(
+            adaptor=self,
+            content=body,
+            timestamp=datetime.datetime.fromtimestamp(timestamp),
+            content_format=Request.TEXT,
+        )
 
     def strip_sig(self, msg):
         """ Strip signature from plain-text emails
@@ -91,8 +98,9 @@ class OuternetEmailAdaptor(Adaptor):
 
         """
         for s in self.SIG_LINES:
-            msg = ''.join(s.split(msg)[0:-1])
-        return msg
+            segs = s.split(msg)
+            msg = segs[0] + ''.join(segs[1:-1])
+        return msg.strip()
 
 
 class EmailHook(Route):
